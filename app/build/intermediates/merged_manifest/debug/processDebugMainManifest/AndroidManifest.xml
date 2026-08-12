@@ -21,7 +21,6 @@
         android:extractNativeLibs="false"
         android:label="Mi Formación CTMA"
         android:supportsRtl="true"
-        android:testOnly="true"
         android:theme="@style/Theme.MiFormacionCTMA" >
         <activity
             android:name="com.miguelloaiza.miformacionctma.MainActivity"
