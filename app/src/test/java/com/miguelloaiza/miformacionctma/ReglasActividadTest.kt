@@ -121,4 +121,49 @@ class ReglasActividadTest {
             resultado.first().titulo
         )
     }
+
+    @Test
+    fun ordenarActividadesDebePriorizarVencidasAltaYMenosDias() {
+        val actividades = listOf(
+            ActividadFormativa(
+                id = 1L,
+                titulo = "Actividad normal",
+                descripcion = null,
+                progreso = 40,
+                diasRestantes = 5,
+                prioridad = Prioridad.BAJA
+            ),
+            ActividadFormativa(
+                id = 2L,
+                titulo = "Actividad urgente",
+                descripcion = null,
+                progreso = 50,
+                diasRestantes = 2,
+                prioridad = Prioridad.ALTA
+            ),
+            ActividadFormativa(
+                id = 3L,
+                titulo = "Actividad vencida",
+                descripcion = null,
+                progreso = 80,
+                diasRestantes = -1,
+                prioridad = Prioridad.MEDIA
+            ),
+            ActividadFormativa(
+                id = 4L,
+                titulo = "Actividad alta cercana",
+                descripcion = null,
+                progreso = 30,
+                diasRestantes = 1,
+                prioridad = Prioridad.ALTA
+            )
+        )
+
+        val resultado = ReglasActividad.ordenarActividades(actividades)
+
+        assertEquals(
+            listOf(3L, 4L, 2L, 1L),
+            resultado.map { it.id }
+        )
+    }
 }
