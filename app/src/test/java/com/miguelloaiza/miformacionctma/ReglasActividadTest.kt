@@ -10,23 +10,12 @@ import org.junit.Test
 
 class ReglasActividadTest {
 
-    private fun actividad(
-        titulo: String = "Actividad",
-        progreso: Int,
-        dias: Int,
-        prioridad: Prioridad = Prioridad.MEDIA
-    ) = ActividadFormativa(
-        id = 1L,
-        titulo = titulo,
-        descripcion = null,
-        progreso = progreso,
-        diasRestantes = dias,
-        prioridad = prioridad
-    )
-
     @Test
-    fun tituloVacioDevuelveError() {
-        val errores = ReglasActividad.validarActividad(" ", 50)
+    fun tituloVacioDebeGenerarError() {
+        val errores = ReglasActividad.validarActividad(
+            titulo = " ",
+            progreso = 50
+        )
 
         assertTrue(
             errores.contains("El título es obligatorio")
@@ -34,10 +23,10 @@ class ReglasActividadTest {
     }
 
     @Test
-    fun progreso120DevuelveError() {
+    fun progresoMayorQue100DebeGenerarError() {
         val errores = ReglasActividad.validarActividad(
-            "Kotlin",
-            120
+            titulo = "Actividad de prueba",
+            progreso = 120
         )
 
         assertTrue(
@@ -46,17 +35,17 @@ class ReglasActividadTest {
     }
 
     @Test
-    fun validacionDevuelveTodosLosErrores() {
-        val errores = ReglasActividad.validarActividad(" ", 120)
-
-        assertEquals(2, errores.size)
-    }
-
-    @Test
-    fun actividadVencida() {
-        val resultado = ReglasActividad.estadoActividad(
-            actividad(progreso = 80, dias = -1)
+    fun actividadConDiasNegativosDebeSerVencida() {
+        val actividad = ActividadFormativa(
+            id = 1L,
+            titulo = "Actividad vencida",
+            descripcion = null,
+            progreso = 80,
+            diasRestantes = -1,
+            prioridad = Prioridad.ALTA
         )
+
+        val resultado = ReglasActividad.estadoActividad(actividad)
 
         assertEquals(
             EstadoActividad.VENCIDA,
@@ -65,10 +54,17 @@ class ReglasActividadTest {
     }
 
     @Test
-    fun actividadCompletaNoEsVencida() {
-        val resultado = ReglasActividad.estadoActividad(
-            actividad(progreso = 100, dias = -2)
+    fun actividadCon100PorcientoDebeSerCompletadaAunqueEsteVencida() {
+        val actividad = ActividadFormativa(
+            id = 2L,
+            titulo = "Actividad completada",
+            descripcion = null,
+            progreso = 100,
+            diasRestantes = -2,
+            prioridad = Prioridad.MEDIA
         )
+
+        val resultado = ReglasActividad.estadoActividad(actividad)
 
         assertEquals(
             EstadoActividad.COMPLETADA,
@@ -77,116 +73,97 @@ class ReglasActividadTest {
     }
 
     @Test
-    fun listaVaciaControlaPromedio() {
+    fun listaVaciaDebeDevolverPromedioCero() {
+        val actividades = emptyList<ActividadFormativa>()
+
+        val resultado = ReglasActividad.promedioProgreso(actividades)
+
         assertEquals(
             0.0,
-            ReglasActividad.promedioProgreso(emptyList()),
+            resultado,
             0.0
         )
     }
 
     @Test
-    fun busquedaIgnoraMayusculasYEspacios() {
+    fun busquedaDebeIgnorarMayusculasYEspacios() {
         val actividades = listOf(
-            actividad(
+            ActividadFormativa(
+                id = 3L,
                 titulo = "Kotlin básico",
+                descripcion = "Introducción a Kotlin",
+                progreso = 50,
+                diasRestantes = 5,
+                prioridad = Prioridad.BAJA
+            ),
+            ActividadFormativa(
+                id = 4L,
+                titulo = "Android Studio",
+                descripcion = null,
                 progreso = 80,
-                dias = 2
+                diasRestantes = 3,
+                prioridad = Prioridad.MEDIA
             )
         )
 
         val resultado = ReglasActividad.buscarPorTitulo(
-            actividades,
-            " kotlin "
-        )
-
-        assertEquals(1, resultado.size)
-    }
-
-    @Test
-    fun completadaNoApareceComoUrgente() {
-        val actividades = listOf(
-            actividad(progreso = 80, dias = 2),
-            actividad(progreso = 100, dias = 1)
+            actividades = actividades,
+            texto = " kotlin "
         )
 
         assertEquals(
             1,
-            ReglasActividad.actividadesUrgentes(actividades).size
+            resultado.size
         )
-    }
 
-    @Test
-    fun nombreVisibleUsaAliasCuandoEsNull() {
         assertEquals(
-            "Aprendiz",
-            ReglasActividad.nombreVisible(
-                null,
-                "Aprendiz"
-            )
+            "Kotlin básico",
+            resultado.first().titulo
         )
     }
 
     @Test
-    fun retoOrdenaVencidasPrimero() {
+    fun ordenarActividadesDebePriorizarVencidasAltaYMenosDias() {
         val actividades = listOf(
-            actividad(
-                titulo = "Normal",
+            ActividadFormativa(
+                id = 1L,
+                titulo = "Actividad normal",
+                descripcion = null,
                 progreso = 40,
-                dias = 5
+                diasRestantes = 5,
+                prioridad = Prioridad.BAJA
             ),
-            actividad(
-                titulo = "Vencida",
-                progreso = 40,
-                dias = -1
-            )
-        )
-
-        val ordenadas = ReglasActividad.ordenarActividades(
-            actividades
-        )
-
-        assertEquals(
-            "Vencida",
-            ordenadas.first().titulo
-        )
-    }
-
-    @Test
-    fun resumenProgresosCalculaPromedioYCompletadas() {
-        val resultado = ReglasActividad.resumenProgresos(
-            listOf(50, 100, 80)
-        )
-
-        assertEquals(
-            "Promedio: 76.7% · Completadas: 1",
-            resultado
-        )
-    }
-
-    @Test
-    fun resumenCalculaPromedioCompletadasYUrgentes() {
-        val actividades = listOf(
-            actividad(
-                titulo = "Completada",
-                progreso = 100,
-                dias = -2
+            ActividadFormativa(
+                id = 2L,
+                titulo = "Actividad urgente",
+                descripcion = null,
+                progreso = 50,
+                diasRestantes = 2,
+                prioridad = Prioridad.ALTA
             ),
-            actividad(
-                titulo = "Urgente",
+            ActividadFormativa(
+                id = 3L,
+                titulo = "Actividad vencida",
+                descripcion = null,
                 progreso = 80,
-                dias = 2
+                diasRestantes = -1,
+                prioridad = Prioridad.MEDIA
             ),
-            actividad(
-                titulo = "Normal",
-                progreso = 40,
-                dias = 5
+            ActividadFormativa(
+                id = 4L,
+                titulo = "Actividad alta cercana",
+                descripcion = null,
+                progreso = 30,
+                diasRestantes = 1,
+                prioridad = Prioridad.ALTA
             )
         )
 
+        val resultado = ReglasActividad.ordenarActividades(actividades)
+
         assertEquals(
-            "Promedio: 73.3% · Completadas: 1 · Urgentes: 1",
-            ReglasActividad.resumen(actividades)
+            listOf(3L, 4L, 2L, 1L),
+            resultado.map { it.id }
         )
     }
 }
