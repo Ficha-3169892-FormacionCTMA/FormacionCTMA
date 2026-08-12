@@ -28,7 +28,9 @@ class ReglasActividadTest {
     fun tituloVacioDevuelveError() {
         val errores = ReglasActividad.validarActividad(" ", 50)
 
-        assertTrue(errores.contains("El título es obligatorio"))
+        assertTrue(
+            errores.contains("El título es obligatorio")
+        )
     }
 
     @Test
@@ -118,7 +120,10 @@ class ReglasActividadTest {
     fun nombreVisibleUsaAliasCuandoEsNull() {
         assertEquals(
             "Aprendiz",
-            ReglasActividad.nombreVisible(null, "Aprendiz")
+            ReglasActividad.nombreVisible(
+                null,
+                "Aprendiz"
+            )
         )
     }
 
@@ -144,6 +149,44 @@ class ReglasActividadTest {
         assertEquals(
             "Vencida",
             ordenadas.first().titulo
+        )
+    }
+
+    @Test
+    fun resumenProgresosCalculaPromedioYCompletadas() {
+        val resultado = ReglasActividad.resumenProgresos(
+            listOf(50, 100, 80)
+        )
+
+        assertEquals(
+            "Promedio: 76.7% · Completadas: 1",
+            resultado
+        )
+    }
+
+    @Test
+    fun resumenCalculaPromedioCompletadasYUrgentes() {
+        val actividades = listOf(
+            actividad(
+                titulo = "Completada",
+                progreso = 100,
+                dias = -2
+            ),
+            actividad(
+                titulo = "Urgente",
+                progreso = 80,
+                dias = 2
+            ),
+            actividad(
+                titulo = "Normal",
+                progreso = 40,
+                dias = 5
+            )
+        )
+
+        assertEquals(
+            "Promedio: 73.3% · Completadas: 1 · Urgentes: 1",
+            ReglasActividad.resumen(actividades)
         )
     }
 }
