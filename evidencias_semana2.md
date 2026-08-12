@@ -1,61 +1,70 @@
 # Evidencias — Semana 2
 
 ## 1. Activación y repaso
-- [ ] Proyecto de Semana 1/2 abierto.
+
+- [x] Proyecto de Semana 1/2 abierto.
 - [ ] Mapa de conexión Semana 1-2.
-- [ ] Identificación de archivos y responsabilidades.
+- [x] Identificación de archivos y responsabilidades.
 
 ## 2. Kata de fundamentos
-- [ ] Tipos de Kotlin.
-- [ ] `val` y `var`.
-- [ ] Operadores.
-- [ ] `when`.
-- [ ] Funciones.
-- [ ] Colecciones.
+
+- [x] Tipos de Kotlin.
+- [x] `val` y `var`.
+- [x] Operadores.
+- [x] `when`.
+- [x] Funciones.
+- [x] Colecciones.
 
 ## 3. Null safety
-- [ ] `String?`.
-- [ ] `?.`.
-- [ ] `?:`.
-- [ ] `let`.
-- [ ] Explicación de por qué no se utiliza `!!`.
+
+- [x] `String?`.
+- [x] `?.`.
+- [x] `?:`.
+- [x] `let`.
+- [x] Explicación de por qué no se utiliza `!!`.
 
 ## 4. Modelado
-- [ ] `ActividadFormativa`.
-- [ ] `EstadoActividad`.
-- [ ] `Prioridad`.
+
+- [x] `ActividadFormativa`.
+- [x] `EstadoActividad`.
+- [x] `Prioridad`.
 
 ## 5. Reglas
-- [ ] `validarActividad`.
-- [ ] `estadoActividad`.
-- [ ] `actividadesUrgentes`.
-- [ ] `promedioProgreso`.
-- [ ] `buscarPorTitulo`.
+
+- [x] `validarActividad`.
+- [x] `estadoActividad`.
+- [x] `actividadesUrgentes`.
+- [x] `promedioProgreso`.
+- [x] `buscarPorTitulo`.
 
 ## 6. Escenarios
-- [ ] Título vacío.
-- [ ] Progreso 120.
-- [ ] Vencida.
-- [ ] Completada con días negativos.
-- [ ] Lista vacía.
-- [ ] Búsqueda flexible.
+
+- [x] Título vacío.
+- [x] Progreso 120.
+- [x] Vencida.
+- [x] Completada con días negativos.
+- [x] Lista vacía.
+- [x] Búsqueda flexible.
 
 ## 7. Integración mínima
-- [ ] Lista de actividades de ejemplo.
-- [ ] Resumen calculado por funciones.
-- [ ] UI sin duplicar las reglas.
+
+- [x] Lista de actividades de ejemplo.
+- [x] Resumen calculado por funciones.
+- [x] UI sin duplicar las reglas.
 
 ## 8. Reto adicional
-- [ ] Vencidas primero.
-- [ ] Prioridad alta.
-- [ ] Menor número de días.
-- [ ] Explicación del comparador.
+
+- [x] Vencidas primero.
+- [x] Prioridad alta.
+- [x] Menor número de días.
+- [x] Explicación del comparador.
 
 ## 9. Evidencias
-- [ ] Captura de estructura.
-- [ ] Captura de cada archivo principal.
-- [ ] Captura de ejecución.
-- [ ] Captura de pruebas.
-- [ ] README.
+
+- [x] Captura de estructura.
+- [x] Captura de cada archivo principal.
+- [x] Captura de ejecución.
+- [x] Captura de pruebas.
+- [x] README.
 - [ ] Commit antes.
-- [ ] Commit después.
+- [x] Commit después.
