@@ -59,3 +59,25 @@ También están incluidos:
 La guía indica que las reglas de negocio deben permanecer independientes de la interfaz. Por eso `MainActivity.kt` calcula el resumen mediante `ReglasActividad` y solo muestra el resultado.
 
 No se agregó navegación ni persistencia, porque la guía indica que esta semana todavía no se construyen esas partes.
+
+
+# Semana 3 — Jetpack Compose
+
+La Semana 3 se implementó sobre la base existente de Semana 2 sin eliminar sus modelos, reglas, validaciones ni pruebas.
+
+## Implementaciones agregadas
+- `TarjetaActividad` parametrizada y reutilizable.
+- 4 Previews para escenarios de estado, texto largo, fontScale 1.5 y ancho ampliado.
+- 10 actividades de demostración basadas en `ActividadFormativa`.
+- Estado vacío.
+- Lista compacta y `LazyVerticalGrid` adaptativo.
+- Selector local Todas / Pendientes / Completadas.
+- Manejo semántico de iconos y tarjetas.
+- Checklist de accesibilidad y corrección documentada.
+- Demostración de recomposición cambiando progreso de 60% a 100%.
+
+## Umbral de adaptación
+El umbral usado para la demostración es 700dp. En pantallas compactas se conserva una lista de una columna; en anchos mayores se habilita una cuadrícula con tarjetas de mínimo 280dp.
+
+## Base de Semana 2 conservada
+`ActividadFormativa`, `EstadoActividad`, `Prioridad`, `ResultadoRegistro`, `ReglasActividad`, `ValidadorActividad`, pruebas unitarias y el resumen de negocio continúan presentes y se reutilizan desde la interfaz de Semana 3.
