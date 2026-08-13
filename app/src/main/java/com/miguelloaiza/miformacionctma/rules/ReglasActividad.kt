@@ -42,7 +42,7 @@ object ReglasActividad {
     ): List<ActividadFormativa> =
         actividades.filter {
             estadoActividad(it) != EstadoActividad.COMPLETADA &&
-                it.diasRestantes <= 2
+                    it.diasRestantes <= 2
         }
 
     // Trata correctamente una lista vacía.

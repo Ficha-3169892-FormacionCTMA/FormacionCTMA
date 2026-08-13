@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.domain.Prioridad
 import com.miguelloaiza.miformacionctma.rules.ReglasActividad
+import com.miguelloaiza.miformacionctma.ui.Semana3Screen
 import com.miguelloaiza.miformacionctma.ui.theme.MiFormacionCTMATheme
 
 class MainActivity : ComponentActivity() {
@@ -60,7 +61,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    InicioScreen(resumen)
+                    Semana3Screen(
+                        actividades = actividadesSemana3(),
+                        resumenSemana2 = resumen
+                    )
                 }
             }
         }
@@ -91,3 +95,16 @@ private fun InicioScreen(resumen: String) {
         )
     }
 }
+
+private fun actividadesSemana3(): List<ActividadFormativa> = listOf(
+    ActividadFormativa(101L, "Kotlin básico", "Fundamentos de Kotlin", 0, 5, Prioridad.ALTA),
+    ActividadFormativa(102L, "Configurar Android Studio", "Preparación del entorno", 100, -2, Prioridad.MEDIA),
+    ActividadFormativa(103L, "Ejercicios de colecciones", "Listas, filtros y operaciones", 40, 5, Prioridad.BAJA),
+    ActividadFormativa(104L, "Jetpack Compose", "Primeros composables", 60, 2, Prioridad.ALTA),
+    ActividadFormativa(105L, "Modifiers", "Orden y comportamiento de Modifier", 80, 1, Prioridad.MEDIA),
+    ActividadFormativa(106L, "Layouts", "Column, Row y Box", 20, 7, Prioridad.BAJA),
+    ActividadFormativa(107L, "Material 3", "Tema, color y tipografía", 100, 0, Prioridad.ALTA),
+    ActividadFormativa(108L, "Accesibilidad", "Semántica y texto escalable", 30, 3, Prioridad.MEDIA),
+    ActividadFormativa(109L, "LazyColumn", "Lista de actividades", 70, 4, Prioridad.BAJA),
+    ActividadFormativa(110L, "Grid adaptable", "Diseño para ancho ampliado", 50, 6, Prioridad.MEDIA)
+)
