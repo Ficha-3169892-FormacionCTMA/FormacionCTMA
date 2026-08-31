@@ -13,18 +13,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.domain.Prioridad
 import com.miguelloaiza.miformacionctma.rules.ReglasActividad
 import com.miguelloaiza.miformacionctma.ui.Semana3Screen
 import com.miguelloaiza.miformacionctma.ui.theme.MiFormacionCTMATheme
+import com.miguelloaiza.miformacionctma.viewmodel.ActividadesViewModel
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Lista de ejemplo solicitada por la integración mínima.
+        // Lista de actividades utilizada para conservar
+        // el resumen de la Semana 2.
         val actividades = listOf(
             ActividadFormativa(
                 id = 1L,
@@ -61,8 +64,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
+                    // El ViewModel administra las actividades
+                    // que serán mostradas en la pantalla.
+                    val actividadesViewModel: ActividadesViewModel = viewModel()
+
                     Semana3Screen(
-                        actividades = actividadesSemana3(),
+                        actividades = actividadesViewModel.uiState.value.actividades,
                         resumenSemana2 = resumen
                     )
                 }
@@ -97,14 +105,84 @@ private fun InicioScreen(resumen: String) {
 }
 
 private fun actividadesSemana3(): List<ActividadFormativa> = listOf(
-    ActividadFormativa(101L, "Kotlin básico", "Fundamentos de Kotlin", 0, 5, Prioridad.ALTA),
-    ActividadFormativa(102L, "Configurar Android Studio", "Preparación del entorno", 100, -2, Prioridad.MEDIA),
-    ActividadFormativa(103L, "Ejercicios de colecciones", "Listas, filtros y operaciones", 40, 5, Prioridad.BAJA),
-    ActividadFormativa(104L, "Jetpack Compose", "Primeros composables", 60, 2, Prioridad.ALTA),
-    ActividadFormativa(105L, "Modifiers", "Orden y comportamiento de Modifier", 80, 1, Prioridad.MEDIA),
-    ActividadFormativa(106L, "Layouts", "Column, Row y Box", 20, 7, Prioridad.BAJA),
-    ActividadFormativa(107L, "Material 3", "Tema, color y tipografía", 100, 0, Prioridad.ALTA),
-    ActividadFormativa(108L, "Accesibilidad", "Semántica y texto escalable", 30, 3, Prioridad.MEDIA),
-    ActividadFormativa(109L, "LazyColumn", "Lista de actividades", 70, 4, Prioridad.BAJA),
-    ActividadFormativa(110L, "Grid adaptable", "Diseño para ancho ampliado", 50, 6, Prioridad.MEDIA)
+    ActividadFormativa(
+        101L,
+        "Kotlin básico",
+        "Fundamentos de Kotlin",
+        0,
+        5,
+        Prioridad.ALTA
+    ),
+    ActividadFormativa(
+        102L,
+        "Configurar Android Studio",
+        "Preparación del entorno",
+        100,
+        -2,
+        Prioridad.MEDIA
+    ),
+    ActividadFormativa(
+        103L,
+        "Ejercicios de colecciones",
+        "Listas, filtros y operaciones",
+        40,
+        5,
+        Prioridad.BAJA
+    ),
+    ActividadFormativa(
+        104L,
+        "Jetpack Compose",
+        "Primeros composables",
+        60,
+        2,
+        Prioridad.ALTA
+    ),
+    ActividadFormativa(
+        105L,
+        "Modifiers",
+        "Orden y comportamiento de Modifier",
+        80,
+        1,
+        Prioridad.MEDIA
+    ),
+    ActividadFormativa(
+        106L,
+        "Layouts",
+        "Column, Row y Box",
+        20,
+        7,
+        Prioridad.BAJA
+    ),
+    ActividadFormativa(
+        107L,
+        "Material 3",
+        "Tema, color y tipografía",
+        100,
+        0,
+        Prioridad.ALTA
+    ),
+    ActividadFormativa(
+        108L,
+        "Accesibilidad",
+        "Semántica y texto escalable",
+        30,
+        3,
+        Prioridad.MEDIA
+    ),
+    ActividadFormativa(
+        109L,
+        "LazyColumn",
+        "Lista de actividades",
+        70,
+        4,
+        Prioridad.BAJA
+    ),
+    ActividadFormativa(
+        110L,
+        "Grid adaptable",
+        "Diseño para ancho ampliado",
+        50,
+        6,
+        Prioridad.MEDIA
+    )
 )
