@@ -146,3 +146,5 @@ object ReglasActividad {
         )
     }
 }
+
+
