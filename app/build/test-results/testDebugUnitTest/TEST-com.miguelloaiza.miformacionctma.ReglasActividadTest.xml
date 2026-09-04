@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.miguelloaiza.miformacionctma.ReglasActividadTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-02T15:53:45.926Z" hostname="PCDEJ" time="0.021">
+<testsuite name="com.miguelloaiza.miformacionctma.ReglasActividadTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-04T15:30:15.907Z" hostname="PCDEJ" time="0.044">
   <properties/>
-  <testcase name="cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos" classname="com.miguelloaiza.miformacionctma.ReglasActividadTest" time="0.008"/>
+  <testcase name="cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos" classname="com.miguelloaiza.miformacionctma.ReglasActividadTest" time="0.022"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
