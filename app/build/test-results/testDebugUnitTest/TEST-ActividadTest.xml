@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ActividadTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-04T15:16:03.660Z" hostname="ANDRES_PC" time="0.033">
-  <properties/>
-  <testcase name="eliminarActividad_actividadDesapareceDeLaLista" classname="ActividadTest" time="0.021"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
