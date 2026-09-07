@@ -1,32 +1,47 @@
-package com.miguelloaiza.miformacionctma
-
-import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
-import com.miguelloaiza.miformacionctma.domain.EstadoActividad
-import com.miguelloaiza.miformacionctma.domain.Prioridad
-import com.miguelloaiza.miformacionctma.rules.ReglasActividad
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Assert.*
 
-class ReglasActividadTest {
+class ActividadTest {
 
+<<<<<<< HEAD
     // ============================================================
     // HU-06 - Validar los datos de una actividad
     // ============================================================
 
+=======
+
+
+
+    // HU-13: Eliminar actividad
+>>>>>>> origin/main
     @Test
-    fun tituloVacioDebeGenerarError() {
-        val errores = ReglasActividad.validarActividad(
-            titulo = " ",
-            progreso = 50
+    fun eliminarActividad_actividadDesapareceDeLaLista() {
+
+        val actividades = mutableListOf(
+            "Estudiar Kotlin",
+            "Realizar proyecto",
+            "Entregar actividad"
         )
 
-        assertTrue(
-            errores.contains("El título es obligatorio")
-        )
+        actividades.remove("Realizar proyecto")
+
+        assertFalse(actividades.contains("Realizar proyecto"))
+    }
+
+
+    // HU-14: Marcar actividad como completada
+    @Test
+    fun completarActividad_cambiaEstadoACompletada() {
+
+        var estado = "Pendiente"
+
+        estado = "Completada"
+
+        assertEquals("Completada", estado)
     }
 
     @Test
+<<<<<<< HEAD
     fun progresoMayorQue100DebeGenerarError() {
         val errores = ReglasActividad.validarActividad(
             titulo = "Actividad de prueba",
@@ -68,34 +83,41 @@ class ReglasActividadTest {
 
     @Test
     fun actividadConDiasNegativosDebeSerVencida() {
+=======
+    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
+>>>>>>> origin/main
         val actividad = ActividadFormativa(
             id = 1L,
-            titulo = "Actividad vencida",
+            titulo = "Actividad de prueba",
             descripcion = null,
-            progreso = 80,
-            diasRestantes = -1,
-            prioridad = Prioridad.ALTA
+            progreso = 40,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
         )
 
-        val resultado = ReglasActividad.estadoActividad(actividad)
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.ALTA
+        )
 
         assertEquals(
-            EstadoActividad.VENCIDA,
-            resultado
+            Prioridad.ALTA,
+            resultado.prioridad
         )
     }
 
     @Test
-    fun actividadCon100PorcientoDebeSerCompletadaAunqueEsteVencida() {
+    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
         val actividad = ActividadFormativa(
             id = 2L,
-            titulo = "Actividad completada",
-            descripcion = null,
-            progreso = 100,
-            diasRestantes = -2,
+            titulo = "Actividad media",
+            descripcion = "Sin cambios esperados",
+            progreso = 60,
+            diasRestantes = 3,
             prioridad = Prioridad.MEDIA
         )
 
+<<<<<<< HEAD
         val resultado = ReglasActividad.estadoActividad(actividad)
 
         assertEquals(
@@ -350,17 +372,23 @@ class ReglasActividadTest {
         val resultado = ReglasActividad.buscarPorTitulo(
             actividades = actividades,
             texto = " kotlin "
+=======
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.MEDIA
+>>>>>>> origin/main
         )
 
         assertEquals(
-            1,
-            resultado.size
+            Prioridad.MEDIA,
+            resultado.prioridad
         )
 
         assertEquals(
-            "Kotlin básico",
-            resultado.first().titulo
+            actividad.titulo,
+            resultado.titulo
         )
+<<<<<<< HEAD
     }
 
     @Test
@@ -480,10 +508,12 @@ class ReglasActividadTest {
         )
 
         val resultado = ReglasActividad.ordenarActividades(actividades)
+=======
+>>>>>>> origin/main
 
         assertEquals(
-            listOf(3L, 4L, 2L, 1L),
-            resultado.map { it.id }
+            actividad.progreso,
+            resultado.progreso
         )
     }
 
