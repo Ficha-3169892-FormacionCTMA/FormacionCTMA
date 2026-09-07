@@ -145,11 +145,6 @@ object ReglasActividad {
             urgentes
         )
     }
-<<<<<<< HEAD
-}
-
-
-=======
 
     // HU-13: Editar la prioridad de una actividad.
     fun cambiarPrioridad(
@@ -166,4 +161,3 @@ object ReglasActividad {
             .groupingBy { estadoActividad(it) }
             .eachCount()
 }
->>>>>>> origin/main
