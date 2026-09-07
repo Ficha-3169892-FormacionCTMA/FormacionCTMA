@@ -1,47 +1,17 @@
 import org.junit.Test
 import org.junit.Assert.*
+import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
+import com.miguelloaiza.miformacionctma.domain.EstadoActividad
+import com.miguelloaiza.miformacionctma.domain.Prioridad
+import com.miguelloaiza.miformacionctma.rules.ReglasActividad
 
 class ActividadTest {
 
-<<<<<<< HEAD
     // ============================================================
     // HU-06 - Validar los datos de una actividad
     // ============================================================
 
-=======
-
-
-
-    // HU-13: Eliminar actividad
->>>>>>> origin/main
     @Test
-    fun eliminarActividad_actividadDesapareceDeLaLista() {
-
-        val actividades = mutableListOf(
-            "Estudiar Kotlin",
-            "Realizar proyecto",
-            "Entregar actividad"
-        )
-
-        actividades.remove("Realizar proyecto")
-
-        assertFalse(actividades.contains("Realizar proyecto"))
-    }
-
-
-    // HU-14: Marcar actividad como completada
-    @Test
-    fun completarActividad_cambiaEstadoACompletada() {
-
-        var estado = "Pendiente"
-
-        estado = "Completada"
-
-        assertEquals("Completada", estado)
-    }
-
-    @Test
-<<<<<<< HEAD
     fun progresoMayorQue100DebeGenerarError() {
         val errores = ReglasActividad.validarActividad(
             titulo = "Actividad de prueba",
@@ -83,41 +53,34 @@ class ActividadTest {
 
     @Test
     fun actividadConDiasNegativosDebeSerVencida() {
-=======
-    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
->>>>>>> origin/main
         val actividad = ActividadFormativa(
             id = 1L,
             titulo = "Actividad de prueba",
             descripcion = null,
             progreso = 40,
-            diasRestantes = 5,
+            diasRestantes = -5,
             prioridad = Prioridad.BAJA
         )
 
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.ALTA
-        )
+        val resultado = ReglasActividad.estadoActividad(actividad)
 
         assertEquals(
-            Prioridad.ALTA,
-            resultado.prioridad
+            EstadoActividad.VENCIDA,
+            resultado
         )
     }
 
     @Test
-    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
+    fun actividadConProgreso100DebeSerCompletada() {
         val actividad = ActividadFormativa(
-            id = 2L,
-            titulo = "Actividad media",
-            descripcion = "Sin cambios esperados",
-            progreso = 60,
-            diasRestantes = 3,
-            prioridad = Prioridad.MEDIA
+            id = 1L,
+            titulo = "Actividad completada",
+            descripcion = null,
+            progreso = 100,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
         )
 
-<<<<<<< HEAD
         val resultado = ReglasActividad.estadoActividad(actividad)
 
         assertEquals(
@@ -372,23 +335,12 @@ class ActividadTest {
         val resultado = ReglasActividad.buscarPorTitulo(
             actividades = actividades,
             texto = " kotlin "
-=======
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.MEDIA
->>>>>>> origin/main
         )
 
         assertEquals(
-            Prioridad.MEDIA,
-            resultado.prioridad
+            1,
+            resultado.size
         )
-
-        assertEquals(
-            actividad.titulo,
-            resultado.titulo
-        )
-<<<<<<< HEAD
     }
 
     @Test
@@ -508,12 +460,15 @@ class ActividadTest {
         )
 
         val resultado = ReglasActividad.ordenarActividades(actividades)
-=======
->>>>>>> origin/main
 
         assertEquals(
-            actividad.progreso,
-            resultado.progreso
+            3L,
+            resultado[0].id
+        )
+
+        assertEquals(
+            4L,
+            resultado[1].id
         )
     }
 
@@ -525,6 +480,64 @@ class ActividadTest {
 
         assertTrue(
             resultado.isEmpty()
+        )
+    }
+
+    // ============================================================
+    // HU-13 - Cambiar prioridad de una actividad
+    // ============================================================
+
+    @Test
+    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
+        val actividad = ActividadFormativa(
+            id = 1L,
+            titulo = "Actividad de prueba",
+            descripcion = null,
+            progreso = 40,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.ALTA
+        )
+
+        assertEquals(
+            Prioridad.ALTA,
+            resultado.prioridad
+        )
+    }
+
+    @Test
+    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
+        val actividad = ActividadFormativa(
+            id = 2L,
+            titulo = "Actividad media",
+            descripcion = "Sin cambios esperados",
+            progreso = 60,
+            diasRestantes = 3,
+            prioridad = Prioridad.MEDIA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.MEDIA
+        )
+
+        assertEquals(
+            Prioridad.MEDIA,
+            resultado.prioridad
+        )
+
+        assertEquals(
+            actividad.titulo,
+            resultado.titulo
+        )
+
+        assertEquals(
+            actividad.progreso,
+            resultado.progreso
         )
     }
 
