@@ -74,4 +74,23 @@ class ReglasActividadTest {
             actividadRestaurada?.prioridad
         )
     }
+
+
+    @Test
+    fun HU18NoDebeDuplicarUnaActividadAlRestaurarla() {
+        val repository = InMemoryActividadRepository()
+
+        val actividadOriginal = repository.obtenerActividad(1L)
+
+        assertNotNull(actividadOriginal)
+
+        repository.restaurarActividad(actividadOriginal!!)
+
+        val actividades = repository.obtenerActividades()
+
+        assertEquals(
+            1,
+            actividades.count { it.id == actividadOriginal.id }
+        )
+    }
 }
