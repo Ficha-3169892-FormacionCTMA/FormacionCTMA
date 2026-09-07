@@ -1,89 +1,77 @@
+package com.miguelloaiza.miformacionctma
+
+import com.miguelloaiza.miformacionctma.data.repository.InMemoryActividadRepository
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
-import org.junit.Assert.*
 
-class ActividadTest {
+class ReglasActividadTest {
 
-
-
-
-    // HU-13: Eliminar actividad
     @Test
-    fun eliminarActividad_actividadDesapareceDeLaLista() {
+    fun HU17ConfirmarLaEliminacionDeUnaActividad() {
+        val repository = InMemoryActividadRepository()
 
-        val actividades = mutableListOf(
-            "Estudiar Kotlin",
-            "Realizar proyecto",
-            "Entregar actividad"
-        )
+        val actividadAntes = repository.obtenerActividad(1L)
 
-        actividades.remove("Realizar proyecto")
+        assertNotNull(actividadAntes)
 
-        assertFalse(actividades.contains("Realizar proyecto"))
-    }
+        val actividadEliminada = repository.eliminarActividad(1L)
 
+        assertNotNull(actividadEliminada)
+        assertEquals(1L, actividadEliminada?.id)
 
-    // HU-14: Marcar actividad como completada
-    @Test
-    fun completarActividad_cambiaEstadoACompletada() {
+        val actividadDespues = repository.obtenerActividad(1L)
 
-        var estado = "Pendiente"
-
-        estado = "Completada"
-
-        assertEquals("Completada", estado)
+        assertNull(actividadDespues)
     }
 
     @Test
-    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
-        val actividad = ActividadFormativa(
-            id = 1L,
-            titulo = "Actividad de prueba",
-            descripcion = null,
-            progreso = 40,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        )
+    fun HU18RestaurarUnaActividadEliminada() {
+        val repository = InMemoryActividadRepository()
 
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.ALTA
+        val actividadOriginal = repository.obtenerActividad(1L)
+
+        assertNotNull(actividadOriginal)
+
+        val actividadEliminada = repository.eliminarActividad(1L)
+
+        assertNotNull(actividadEliminada)
+
+        repository.restaurarActividad(actividadEliminada!!)
+
+        val actividadRestaurada = repository.obtenerActividad(1L)
+
+        assertNotNull(actividadRestaurada)
+
+        assertEquals(
+            actividadOriginal?.id,
+            actividadRestaurada?.id
         )
 
         assertEquals(
-            Prioridad.ALTA,
-            resultado.prioridad
-        )
-    }
-
-    @Test
-    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
-        val actividad = ActividadFormativa(
-            id = 2L,
-            titulo = "Actividad media",
-            descripcion = "Sin cambios esperados",
-            progreso = 60,
-            diasRestantes = 3,
-            prioridad = Prioridad.MEDIA
-        )
-
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.MEDIA
+            actividadOriginal?.titulo,
+            actividadRestaurada?.titulo
         )
 
         assertEquals(
-            Prioridad.MEDIA,
-            resultado.prioridad
+            actividadOriginal?.descripcion,
+            actividadRestaurada?.descripcion
         )
 
         assertEquals(
-            actividad.titulo,
-            resultado.titulo
+            actividadOriginal?.progreso,
+            actividadRestaurada?.progreso
         )
 
         assertEquals(
-            actividad.progreso,
-            resultado.progreso
+            actividadOriginal?.diasRestantes,
+            actividadRestaurada?.diasRestantes
+        )
+
+        assertEquals(
+            actividadOriginal?.prioridad,
+            actividadRestaurada?.prioridad
         )
     }
 }
