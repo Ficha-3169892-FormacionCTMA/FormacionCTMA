@@ -145,4 +145,19 @@ object ReglasActividad {
             urgentes
         )
     }
+
+    // HU-13: Editar la prioridad de una actividad.
+    fun cambiarPrioridad(
+        actividad: ActividadFormativa,
+        nuevaPrioridad: Prioridad
+    ): ActividadFormativa =
+        actividad.copy(prioridad = nuevaPrioridad)
+
+    // HU-14: Calcular el total de actividades por estado.
+    fun contarPorEstado(
+        actividades: List<ActividadFormativa>
+    ): Map<EstadoActividad, Int> =
+        actividades
+            .groupingBy { estadoActividad(it) }
+            .eachCount()
 }
