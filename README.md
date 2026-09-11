@@ -81,3 +81,80 @@ El umbral usado para la demostración es 700dp. En pantallas compactas se conser
 
 ## Base de Semana 2 conservada
 `ActividadFormativa`, `EstadoActividad`, `Prioridad`, `ResultadoRegistro`, `ReglasActividad`, `ValidadorActividad`, pruebas unitarias y el resumen de negocio continúan presentes y se reutilizan desde la interfaz de Semana 3.
+
+---
+
+# Semana 7 — Corrutinas, Flow, StateFlow y ciclo de vida
+
+Rama: `feature/semana-07-coroutines-flow`
+
+## Arquitectura
+
+```
+Room (Flow<Entity>) ──► ActividadRepository (Flow<Dominio>, suspend)
+DataStore (Flow<String>) ──► PreferenciasRepository
+                                      │
+                              ActividadesViewModel
+                              ├── combine() + flatMapLatest()
+                              ├── debounce(300ms) para búsqueda
+                              ├── stateIn(WhileSubscribed 5s)
+                              ├── uiState: StateFlow<ListadoUiState>
+                              └── operacionState: StateFlow<OperacionUiState>
+                                      │
+                              ActividadesScreen (Compose)
+                              └── collectAsStateWithLifecycle()
+```
+
+## Estados implementados
+
+| Estado listado | Estado operación |
+|---|---|
+| `Cargando` | `Inactiva` |
+| `Contenido(actividades)` | `EnCurso` |
+| `Vacio` | `Exitosa` |
+| `Error(mensaje)` | `Fallida(error)` |
+
+## Decisiones de dispatcher
+
+| Capa | Dispatcher | Justificación |
+|---|---|---|
+| Room DAO | IO (interno de Room) | Room maneja su propio dispatcher |
+| DataStore | IO (interno) | DataStore es main-safe |
+| Repository | Sin cambio (main-safe) | Delega al DAO/DataStore |
+| ViewModel | `viewModelScope` (Main) | Transforma flujos; no bloquea |
+| Guardado/eliminación | `viewModelScope.launch` | Room es main-safe con `room-ktx` |
+
+**Regla aplicada:** La UI no crea `CoroutineScope`, no usa `GlobalScope` ni decide el dispatcher de datos.
+
+## Casos de aceptación (CA-01 a CA-08)
+
+| Caso | Descripción | Verificado |
+|---|---|---|
+| CA-01 | Sin actividades → Cargando → Vacío | ✅ Test |
+| CA-02 | Insertar → lista actualiza sin refresco | ✅ Test |
+| CA-03 | Filtro cambia → combine recalcula | ✅ Test |
+| CA-04 | Búsquedas rápidas → solo gana la última | ✅ Test |
+| CA-05 | Fallo del repository → Error con Reintentar | ✅ Test |
+| CA-06 | Salir durante operación → Job se cancela con el scope | ✅ Manual |
+| CA-07 | Girar pantalla → StateFlow conserva estado | ✅ Test |
+| CA-08 | Suite sin Thread.sleep | ✅ runTest + advanceUntilIdle |
+
+## Pruebas
+
+```bash
+./gradlew test
+```
+
+- `ActividadesViewModelTest` — 7 pruebas unitarias con `runTest`
+- Usan `FakeActividadRepository` y `FakePreferenciasRepository`
+- Sin delay real, sin base de datos, sin Android Context
+
+## Uso de IA
+
+Se utilizó Antigravity (IA) para:
+- Revisar la arquitectura existente de Semana 6 y diagnosticar qué faltaba
+- Generar los repositorios falsos (`FakeActividadRepository`, `FakePreferenciasRepository`)
+- Escribir los tests con `runTest` y `advanceUntilIdle`
+- Actualizar el README
+
+Todo el código generado fue revisado y validado contra la compilación real del proyecto (`./gradlew compileDebugKotlin` exitoso). Las decisiones de arquitectura (dispatchers, `stateIn`, `CancellationException`) corresponden a las semanas anteriores y al conocimiento propio del equipo.

@@ -3,7 +3,7 @@ package com.miguelloaiza.miformacionctma.rules.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
-import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
+import com.miguelloaiza.miformacionctma.data.preferencias.IPreferenciasRepository
 import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.ui.estado.ListadoUiState
 import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
@@ -16,7 +16,7 @@ import kotlinx.coroutines.CancellationException
 
 class ActividadesViewModel(
     private val repository: ActividadRepository,
-    private val preferencias: PreferenciasRepository
+    private val preferencias: IPreferenciasRepository
 ) : ViewModel() {
 
     private val _busquedaQuery = MutableStateFlow("")

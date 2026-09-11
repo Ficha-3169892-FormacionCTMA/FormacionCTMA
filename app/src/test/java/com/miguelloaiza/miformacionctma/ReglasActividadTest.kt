@@ -1,3 +1,8 @@
+package com.miguelloaiza.miformacionctma
+
+import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
+import com.miguelloaiza.miformacionctma.domain.Prioridad
+import com.miguelloaiza.miformacionctma.rules.ReglasActividad
 import org.junit.Test
 import org.junit.Assert.*
 

@@ -7,19 +7,19 @@ import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class ActividadRepository(private val dao: ActividadDao) {
+open class ActividadRepository(private val dao: ActividadDao) {
 
-    fun obtenerActividades(): Flow<List<ActividadFormativa>> {
+    open fun obtenerActividades(): Flow<List<ActividadFormativa>> {
         return dao.obtenerTodas().map { lista ->
             lista.map { it.aDominio() }
         }
     }
 
-    suspend fun insertar(actividad: ActividadFormativa) {
+    open suspend fun insertar(actividad: ActividadFormativa) {
         dao.insertar(actividad.aEntity())
     }
 
-    suspend fun eliminar(actividad: ActividadFormativa) {
+    open suspend fun eliminar(actividad: ActividadFormativa) {
         dao.eliminar(actividad.aEntity())
     }
 }

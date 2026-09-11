@@ -3,6 +3,7 @@ package com.miguelloaiza.miformacionctma.rules.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
+import com.miguelloaiza.miformacionctma.data.preferencias.IPreferenciasRepository
 import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
 
 /**
@@ -12,7 +13,7 @@ import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
  */
 class ActividadesViewModelFactory(
     private val repository: ActividadRepository,
-    private val preferencias: PreferenciasRepository
+    private val preferencias: IPreferenciasRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")

@@ -9,17 +9,17 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "preferencias_app")
 
-class PreferenciasRepository(private val context: Context) {
+open class PreferenciasRepository(private val context: Context) : IPreferenciasRepository {
 
     private val FILTRO_KEY = stringPreferencesKey("filtro_prioridad")
 
-    fun obtenerFiltro(): Flow<String> {
+    override fun obtenerFiltro(): Flow<String> {
         return context.dataStore.data.map { preferencias ->
             preferencias[FILTRO_KEY] ?: "TODAS"
         }
     }
 
-    suspend fun guardarFiltro(filtro: String) {
+    override suspend fun guardarFiltro(filtro: String) {
         context.dataStore.edit { preferencias ->
             preferencias[FILTRO_KEY] = filtro
         }
