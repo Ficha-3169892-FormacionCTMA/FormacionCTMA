@@ -1,3 +1,5 @@
+package com.miguelloaiza.miformacionctma.rules.viewmodel
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
@@ -10,7 +12,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.concurrent.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class ActividadesViewModel(
     private val repository: ActividadRepository,
