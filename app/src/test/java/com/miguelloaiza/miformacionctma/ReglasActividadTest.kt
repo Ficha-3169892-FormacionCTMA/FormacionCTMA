@@ -6,6 +6,7 @@ import com.miguelloaiza.miformacionctma.domain.Prioridad
 import com.miguelloaiza.miformacionctma.rules.ReglasActividad
 import org.junit.Assert.*
 import org.junit.Test
+
 class ActividadTest {
 
     // ============================================================
@@ -72,6 +73,25 @@ class ActividadTest {
     }
 
     @Test
+    fun actividadConProgreso100DebeSerCompletada() {
+        val actividad = ActividadFormativa(
+            id = 1L,
+            titulo = "Actividad completada",
+            descripcion = null,
+            progreso = 100,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
+        )
+
+        val resultado = ReglasActividad.estadoActividad(actividad)
+
+        assertEquals(
+            EstadoActividad.COMPLETADA,
+            resultado
+        )
+    }
+
+    @Test
     fun actividadConProgresoCeroDebeSerPendiente() {
         val actividad = ActividadFormativa(
             id = 5L,
@@ -106,64 +126,6 @@ class ActividadTest {
         assertEquals(
             EstadoActividad.EN_PROCESO,
             resultado
-        )
-    }
-
-    // ============================================================
-    // Pruebas de cambio de prioridad
-    // ============================================================
-
-    @Test
-    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
-        val actividad = ActividadFormativa(
-            id = 1L,
-            titulo = "Actividad de prueba",
-            descripcion = null,
-            progreso = 40,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        )
-
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.ALTA
-        )
-
-        assertEquals(
-            Prioridad.ALTA,
-            resultado.prioridad
-        )
-    }
-
-    @Test
-    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
-        val actividad = ActividadFormativa(
-            id = 2L,
-            titulo = "Actividad media",
-            descripcion = "Sin cambios esperados",
-            progreso = 60,
-            diasRestantes = 3,
-            prioridad = Prioridad.MEDIA
-        )
-
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.MEDIA
-        )
-
-        assertEquals(
-            Prioridad.MEDIA,
-            resultado.prioridad
-        )
-
-        assertEquals(
-            actividad.titulo,
-            resultado.titulo
-        )
-
-        assertEquals(
-            actividad.progreso,
-            resultado.progreso
         )
     }
 
@@ -535,6 +497,64 @@ class ActividadTest {
 
         assertTrue(
             resultado.isEmpty()
+        )
+    }
+
+    // ============================================================
+    // HU-13 - Cambiar prioridad de una actividad
+    // ============================================================
+
+    @Test
+    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
+        val actividad = ActividadFormativa(
+            id = 1L,
+            titulo = "Actividad de prueba",
+            descripcion = null,
+            progreso = 40,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.ALTA
+        )
+
+        assertEquals(
+            Prioridad.ALTA,
+            resultado.prioridad
+        )
+    }
+
+    @Test
+    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
+        val actividad = ActividadFormativa(
+            id = 2L,
+            titulo = "Actividad media",
+            descripcion = "Sin cambios esperados",
+            progreso = 60,
+            diasRestantes = 3,
+            prioridad = Prioridad.MEDIA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.MEDIA
+        )
+
+        assertEquals(
+            Prioridad.MEDIA,
+            resultado.prioridad
+        )
+
+        assertEquals(
+            actividad.titulo,
+            resultado.titulo
+        )
+
+        assertEquals(
+            actividad.progreso,
+            resultado.progreso
         )
     }
 
