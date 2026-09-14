@@ -1,5 +1,12 @@
 package com.miguelloaiza.miformacionctma.ui.screens
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import android.widget.ImageView
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,11 +14,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
+import com.miguelloaiza.miformacionctma.data.EvidenciaRepository
 import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
 import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.domain.Prioridad
@@ -19,6 +30,8 @@ import com.miguelloaiza.miformacionctma.rules.viewmodel.ActividadesViewModel
 import com.miguelloaiza.miformacionctma.rules.viewmodel.ActividadesViewModelFactory
 import com.miguelloaiza.miformacionctma.ui.estado.ListadoUiState
 import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
+import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Pantalla principal de actividades.
@@ -31,6 +44,7 @@ import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
 fun ActividadesScreen(
     repository: ActividadRepository,
     preferencias: PreferenciasRepository,
+    evidenciaRepository: EvidenciaRepository,
     viewModel: ActividadesViewModel = viewModel(
         factory = ActividadesViewModelFactory(repository, preferencias)
     )
@@ -41,6 +55,10 @@ fun ActividadesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var mostrarFormulario by remember { mutableStateOf(false) }
     var busqueda by remember { mutableStateOf("") }
+    var recordatoriosActivos by remember { mutableStateOf(false) }
+    val permisoNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        recordatoriosActivos = concedido
+    }
 
     // CA-06/CA-07: reacciona a operacionState sin bloquear la UI.
     // Al ser un LaunchedEffect atado a la clave operacionState, se relanza
@@ -63,7 +81,17 @@ fun ActividadesScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(title = { Text("Mis actividades") })
+            TopAppBar(
+                title = { Text("Mis actividades") },
+                actions = {
+                    TextButton(onClick = viewModel::actualizarDesdeRed) { Text("Actualizar") }
+                    TextButton(onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else recordatoriosActivos = true
+                    }) { Text(if (recordatoriosActivos) "Recordatorios activos" else "Activar recordatorios") }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { mostrarFormulario = true }) {
@@ -99,6 +127,7 @@ fun ActividadesScreen(
                 )
                 is ListadoUiState.Contenido -> ListaActividades(
                     actividades = estado.actividades,
+                    evidenciaRepository = evidenciaRepository,
                     operacionEnCurso = operacionState is OperacionUiState.EnCurso,
                     onEliminar = viewModel::eliminarActividad
                 )
@@ -162,6 +191,7 @@ private fun EstadoError(mensaje: String, onReintentar: () -> Unit) {
 @Composable
 private fun ListaActividades(
     actividades: List<ActividadFormativa>,
+    evidenciaRepository: EvidenciaRepository,
     operacionEnCurso: Boolean,
     onEliminar: (ActividadFormativa) -> Unit
 ) {
@@ -169,6 +199,7 @@ private fun ListaActividades(
         items(actividades, key = { it.id }) { actividad ->
             ActividadItem(
                 actividad = actividad,
+                evidenciaRepository = evidenciaRepository,
                 habilitado = !operacionEnCurso,
                 onEliminar = { onEliminar(actividad) }
             )
@@ -179,6 +210,7 @@ private fun ListaActividades(
 @Composable
 private fun ActividadItem(
     actividad: ActividadFormativa,
+    evidenciaRepository: EvidenciaRepository,
     habilitado: Boolean,
     onEliminar: () -> Unit
 ) {
@@ -198,11 +230,72 @@ private fun ActividadItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Progreso: ${actividad.progreso}%  ·  Prioridad: ${actividad.prioridad.name}")
                 Text("Dias restantes: ${actividad.diasRestantes}")
+                EvidenciaControls(actividad.id, evidenciaRepository)
             }
             TextButton(onClick = onEliminar, enabled = habilitado) {
                 Text("Eliminar")
             }
         }
+    }
+}
+
+/** Selección puntual: no solicita permiso de galería ni conserva bytes en Room. */
+@Composable
+private fun EvidenciaControls(actividadId: Long, repository: EvidenciaRepository) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val evidencia by repository.observar(actividadId).collectAsStateWithLifecycle(initialValue = null)
+    var mensaje by remember { mutableStateOf<String?>(null) }
+    var uriCaptura by remember { mutableStateOf<Uri?>(null) }
+
+    fun guardar(uri: Uri) {
+        scope.launch {
+            repository.guardar(actividadId, uri)
+                .onSuccess { mensaje = "Evidencia guardada localmente" }
+                .onFailure { mensaje = it.message ?: "No se pudo guardar la evidencia" }
+        }
+    }
+    val selector = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) guardar(uri) else mensaje = "Selección cancelada"
+    }
+    val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { tomada ->
+        if (tomada) uriCaptura?.let(::guardar) else mensaje = "Captura cancelada"
+    }
+
+    Column(modifier = Modifier.padding(top = 8.dp)) {
+        if (evidencia != null) {
+            AndroidView(
+                factory = { ImageView(it).apply { adjustViewBounds = true; scaleType = ImageView.ScaleType.CENTER_CROP } },
+                update = { it.setImageURI(Uri.parse(evidencia!!.uri)) },
+                modifier = Modifier.fillMaxWidth().height(140.dp)
+            )
+            Text("Evidencia: ${evidencia!!.nombre} (${evidencia!!.estado.lowercase()})")
+        } else {
+            Text("Sin evidencia fotográfica")
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = {
+                selector.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }) { Text(if (evidencia == null) "Elegir imagen" else "Reemplazar") }
+            OutlinedButton(onClick = {
+                val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
+                val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
+                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", archivo)
+                uriCaptura = uri
+                camara.launch(uri)
+            }) { Text("Tomar foto") }
+            if (evidencia != null) {
+                TextButton(onClick = { scope.launch { repository.eliminar(actividadId); mensaje = "Evidencia eliminada" } }) { Text("Eliminar") }
+                TextButton(onClick = {
+                    scope.launch {
+                        repository.sincronizar(actividadId)
+                            .onSuccess { mensaje = "Evidencia sincronizada" }
+                            .onFailure { mensaje = "La evidencia sigue local; puedes reintentar" }
+                    }
+                }) { Text(if (evidencia!!.estado == "FALLIDA") "Reintentar" else "Sincronizar") }
+            }
+        }
+        mensaje?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     }
 }
 

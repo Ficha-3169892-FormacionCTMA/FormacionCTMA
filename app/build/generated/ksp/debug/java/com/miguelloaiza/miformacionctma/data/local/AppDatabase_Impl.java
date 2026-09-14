@@ -16,6 +16,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.SuppressWarnings;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,20 +29,25 @@ import javax.annotation.processing.Generated;
 public final class AppDatabase_Impl extends AppDatabase {
   private volatile ActividadDao _actividadDao;
 
+  private volatile EvidenciaDao _evidenciaDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `actividades` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `titulo` TEXT NOT NULL, `descripcion` TEXT, `progreso` INTEGER NOT NULL, `diasRestantes` INTEGER NOT NULL, `prioridad` TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `evidencias` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `actividadId` INTEGER NOT NULL, `uri` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `tamanoBytes` INTEGER NOT NULL, `nombre` TEXT NOT NULL, `estado` TEXT NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_evidencias_actividadId` ON `evidencias` (`actividadId`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3a6c0a336d89f28fc490ec197ccbce39')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f1317685fd8ddc7d9b1256d5a2859d30')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `actividades`");
+        db.execSQL("DROP TABLE IF EXISTS `evidencias`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -101,9 +107,27 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoActividades + "\n"
                   + " Found:\n" + _existingActividades);
         }
+        final HashMap<String, TableInfo.Column> _columnsEvidencias = new HashMap<String, TableInfo.Column>(7);
+        _columnsEvidencias.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("actividadId", new TableInfo.Column("actividadId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("uri", new TableInfo.Column("uri", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("mimeType", new TableInfo.Column("mimeType", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("tamanoBytes", new TableInfo.Column("tamanoBytes", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("nombre", new TableInfo.Column("nombre", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsEvidencias.put("estado", new TableInfo.Column("estado", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysEvidencias = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesEvidencias = new HashSet<TableInfo.Index>(1);
+        _indicesEvidencias.add(new TableInfo.Index("index_evidencias_actividadId", false, Arrays.asList("actividadId"), Arrays.asList("ASC")));
+        final TableInfo _infoEvidencias = new TableInfo("evidencias", _columnsEvidencias, _foreignKeysEvidencias, _indicesEvidencias);
+        final TableInfo _existingEvidencias = TableInfo.read(db, "evidencias");
+        if (!_infoEvidencias.equals(_existingEvidencias)) {
+          return new RoomOpenHelper.ValidationResult(false, "evidencias(com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity).\n"
+                  + " Expected:\n" + _infoEvidencias + "\n"
+                  + " Found:\n" + _existingEvidencias);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "3a6c0a336d89f28fc490ec197ccbce39", "f3e8a5e90b6b20333157f34f32ff3cf9");
+    }, "f1317685fd8ddc7d9b1256d5a2859d30", "1b66834c0074bf6919aec9e47dd350bb");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -114,7 +138,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "actividades");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "actividades","evidencias");
   }
 
   @Override
@@ -124,6 +148,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     try {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `actividades`");
+      _db.execSQL("DELETE FROM `evidencias`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -139,6 +164,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(ActividadDao.class, ActividadDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(EvidenciaDao.class, EvidenciaDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -167,6 +193,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _actividadDao = new ActividadDao_Impl(this);
         }
         return _actividadDao;
+      }
+    }
+  }
+
+  @Override
+  public EvidenciaDao evidenciaDao() {
+    if (_evidenciaDao != null) {
+      return _evidenciaDao;
+    } else {
+      synchronized(this) {
+        if(_evidenciaDao == null) {
+          _evidenciaDao = new EvidenciaDao_Impl(this);
+        }
+        return _evidenciaDao;
       }
     }
   }

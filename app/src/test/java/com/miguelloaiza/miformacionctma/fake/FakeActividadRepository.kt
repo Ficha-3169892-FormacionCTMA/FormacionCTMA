@@ -49,7 +49,10 @@ class FakeActividadRepository : ActividadRepository(dao = EmptyDao()) {
             MutableStateFlow(emptyList<ActividadEntity>()).asStateFlow()
 
         override suspend fun insertar(actividad: ActividadEntity) = Unit
+        override suspend fun insertarTodas(actividades: List<ActividadEntity>) = Unit
+        override suspend fun eliminarTodas() = Unit
         override suspend fun eliminar(actividad: ActividadEntity) = Unit
         override suspend fun eliminarPorId(id: Long) = Unit
+        override suspend fun reemplazarTodas(actividades: List<ActividadEntity>) = Unit
     }
 }

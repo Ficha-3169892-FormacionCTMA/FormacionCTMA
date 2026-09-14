@@ -113,4 +113,18 @@ class ActividadesViewModel(
     fun reiniciarOperacion() {
         _operacionState.value = OperacionUiState.Inactiva
     }
+
+    fun actualizarDesdeRed() {
+        operacionJob?.cancel()
+        operacionJob = viewModelScope.launch {
+            _operacionState.value = OperacionUiState.EnCurso
+            try {
+                repository.actualizarDesdeRed()
+                    .onSuccess { _operacionState.value = OperacionUiState.Exitosa }
+                    .onFailure { _operacionState.value = OperacionUiState.Fallida(it.message ?: "Error de actualización") }
+            } catch (e: CancellationException) {
+                throw e
+            }
+        }
+    }
 }
