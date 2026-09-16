@@ -10,4 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface IPreferenciasRepository {
     fun obtenerFiltro(): Flow<String>
     suspend fun guardarFiltro(filtro: String)
+    fun obtenerToken(): Flow<String?>
+    suspend fun guardarToken(token: String)
+    suspend fun borrarToken()
 }

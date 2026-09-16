@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class FakePreferenciasRepository : IPreferenciasRepository {
 
     private val _filtro = MutableStateFlow("TODAS")
+    private val _token = MutableStateFlow<String?>(null)
 
     override fun obtenerFiltro(): Flow<String> = _filtro.asStateFlow()
 
@@ -21,8 +22,23 @@ class FakePreferenciasRepository : IPreferenciasRepository {
         _filtro.value = filtro
     }
 
+    override fun obtenerToken(): Flow<String?> = _token.asStateFlow()
+
+    override suspend fun guardarToken(token: String) {
+        _token.value = token
+    }
+
+    override suspend fun borrarToken() {
+        _token.value = null
+    }
+
     /** Emite un filtro directamente sin corrutinas — útil en setUp(). */
     fun emitirFiltro(filtro: String) {
         _filtro.value = filtro
+    }
+
+    /** Emite un token directamente sin corrutinas. */
+    fun emitirToken(token: String?) {
+        _token.value = token
     }
 }

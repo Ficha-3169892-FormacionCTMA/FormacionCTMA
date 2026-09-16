@@ -3,6 +3,7 @@ package com.miguelloaiza.miformacionctma.rules.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
+import com.miguelloaiza.miformacionctma.data.EvidenciaRepository
 import com.miguelloaiza.miformacionctma.data.preferencias.IPreferenciasRepository
 import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
 
@@ -13,13 +14,14 @@ import com.miguelloaiza.miformacionctma.data.preferencias.PreferenciasRepository
  */
 class ActividadesViewModelFactory(
     private val repository: ActividadRepository,
-    private val preferencias: IPreferenciasRepository
+    private val preferencias: IPreferenciasRepository,
+    private val evidenciaRepository: EvidenciaRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ActividadesViewModel::class.java)) {
-            return ActividadesViewModel(repository, preferencias) as T
+            return ActividadesViewModel(repository, preferencias, evidenciaRepository) as T
         }
         throw IllegalArgumentException("Clase de ViewModel desconocida: ${modelClass.name}")
     }

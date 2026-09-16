@@ -46,11 +46,12 @@ fun ActividadesScreen(
     preferencias: PreferenciasRepository,
     evidenciaRepository: EvidenciaRepository,
     viewModel: ActividadesViewModel = viewModel(
-        factory = ActividadesViewModelFactory(repository, preferencias)
+        factory = ActividadesViewModelFactory(repository, preferencias, evidenciaRepository)
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val operacionState by viewModel.operacionState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     val snackbarHostState = remember { SnackbarHostState() }
     var mostrarFormulario by remember { mutableStateOf(false) }
@@ -61,8 +62,6 @@ fun ActividadesScreen(
     }
 
     // CA-06/CA-07: reacciona a operacionState sin bloquear la UI.
-    // Al ser un LaunchedEffect atado a la clave operacionState, se relanza
-    // (y cancela el anterior) cada vez que el estado cambia.
     LaunchedEffect(operacionState) {
         when (val estado = operacionState) {
             is OperacionUiState.Exitosa -> {
@@ -89,7 +88,12 @@ fun ActividadesScreen(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else recordatoriosActivos = true
-                    }) { Text(if (recordatoriosActivos) "Recordatorios activos" else "Activar recordatorios") }
+                    }) { Text(if (recordatoriosActivos) "Recordatorios ON" else "Recordatorios OFF") }
+                    TextButton(onClick = {
+                        scope.launch {
+                            preferencias.borrarToken()
+                        }
+                    }) { Text("Salir") }
                 }
             )
         },
@@ -127,7 +131,7 @@ fun ActividadesScreen(
                 )
                 is ListadoUiState.Contenido -> ListaActividades(
                     actividades = estado.actividades,
-                    evidenciaRepository = evidenciaRepository,
+                    viewModel = viewModel,
                     operacionEnCurso = operacionState is OperacionUiState.EnCurso,
                     onEliminar = viewModel::eliminarActividad
                 )
@@ -191,7 +195,7 @@ private fun EstadoError(mensaje: String, onReintentar: () -> Unit) {
 @Composable
 private fun ListaActividades(
     actividades: List<ActividadFormativa>,
-    evidenciaRepository: EvidenciaRepository,
+    viewModel: ActividadesViewModel,
     operacionEnCurso: Boolean,
     onEliminar: (ActividadFormativa) -> Unit
 ) {
@@ -199,7 +203,7 @@ private fun ListaActividades(
         items(actividades, key = { it.id }) { actividad ->
             ActividadItem(
                 actividad = actividad,
-                evidenciaRepository = evidenciaRepository,
+                viewModel = viewModel,
                 habilitado = !operacionEnCurso,
                 onEliminar = { onEliminar(actividad) }
             )
@@ -210,7 +214,7 @@ private fun ListaActividades(
 @Composable
 private fun ActividadItem(
     actividad: ActividadFormativa,
-    evidenciaRepository: EvidenciaRepository,
+    viewModel: ActividadesViewModel,
     habilitado: Boolean,
     onEliminar: () -> Unit
 ) {
@@ -230,7 +234,7 @@ private fun ActividadItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Progreso: ${actividad.progreso}%  ·  Prioridad: ${actividad.prioridad.name}")
                 Text("Dias restantes: ${actividad.diasRestantes}")
-                EvidenciaControls(actividad.id, evidenciaRepository)
+                EvidenciaControls(actividad.id, viewModel)
             }
             TextButton(onClick = onEliminar, enabled = habilitado) {
                 Text("Eliminar")
@@ -241,25 +245,27 @@ private fun ActividadItem(
 
 /** Selección puntual: no solicita permiso de galería ni conserva bytes en Room. */
 @Composable
-private fun EvidenciaControls(actividadId: Long, repository: EvidenciaRepository) {
+private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val evidencia by repository.observar(actividadId).collectAsStateWithLifecycle(initialValue = null)
-    var mensaje by remember { mutableStateOf<String?>(null) }
+    val evidencia by viewModel.observarEvidencia(actividadId).collectAsStateWithLifecycle(initialValue = null)
     var uriCaptura by remember { mutableStateOf<Uri?>(null) }
+    var mensajeLocal by remember { mutableStateOf<String?>(null) }
 
-    fun guardar(uri: Uri) {
-        scope.launch {
-            repository.guardar(actividadId, uri)
-                .onSuccess { mensaje = "Evidencia guardada localmente" }
-                .onFailure { mensaje = it.message ?: "No se pudo guardar la evidencia" }
+    val selector = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            viewModel.guardarEvidencia(actividadId, uri.toString())
+            mensajeLocal = null
+        } else {
+            mensajeLocal = "Selección cancelada"
         }
     }
-    val selector = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) guardar(uri) else mensaje = "Selección cancelada"
-    }
     val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { tomada ->
-        if (tomada) uriCaptura?.let(::guardar) else mensaje = "Captura cancelada"
+        if (tomada) {
+            uriCaptura?.let { viewModel.guardarEvidencia(actividadId, it.toString()) }
+            mensajeLocal = null
+        } else {
+            mensajeLocal = "Captura cancelada"
+        }
     }
 
     Column(modifier = Modifier.padding(top = 8.dp)) {
@@ -285,17 +291,13 @@ private fun EvidenciaControls(actividadId: Long, repository: EvidenciaRepository
                 camara.launch(uri)
             }) { Text("Tomar foto") }
             if (evidencia != null) {
-                TextButton(onClick = { scope.launch { repository.eliminar(actividadId); mensaje = "Evidencia eliminada" } }) { Text("Eliminar") }
-                TextButton(onClick = {
-                    scope.launch {
-                        repository.sincronizar(actividadId)
-                            .onSuccess { mensaje = "Evidencia sincronizada" }
-                            .onFailure { mensaje = "La evidencia sigue local; puedes reintentar" }
-                    }
-                }) { Text(if (evidencia!!.estado == "FALLIDA") "Reintentar" else "Sincronizar") }
+                TextButton(onClick = { viewModel.eliminarEvidencia(actividadId) }) { Text("Eliminar") }
+                TextButton(onClick = { viewModel.sincronizarEvidencia(actividadId) }) {
+                    Text(if (evidencia!!.estado == "FALLIDA") "Reintentar" else "Sincronizar")
+                }
             }
         }
-        mensaje?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        mensajeLocal?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     }
 }
 

@@ -9,16 +9,17 @@ import com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-class EvidenciaRepository(
+open class EvidenciaRepository(
     private val resolver: ContentResolver,
     private val dao: EvidenciaDao,
     private val remote: EvidenciaRemoteDataSource = EvidenciaRemoteNoConfigurada
 ) {
     companion object { const val MAX_BYTES = 10L * 1024 * 1024 }
 
-    fun observar(actividadId: Long): Flow<EvidenciaEntity?> = dao.observarPorActividad(actividadId)
+    open fun observar(actividadId: Long): Flow<EvidenciaEntity?> = dao.observarPorActividad(actividadId)
 
-    suspend fun guardar(actividadId: Long, uri: Uri): Result<Unit> = runCatching {
+    open suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> = runCatching {
+        val uri = Uri.parse(uriString)
         val tipo = resolver.getType(uri) ?: error("No se pudo identificar el tipo de archivo")
         require(tipo.startsWith("image/")) { "Solo se permiten imágenes" }
         val metadata = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
@@ -35,12 +36,12 @@ class EvidenciaRepository(
         dao.guardar(EvidenciaEntity(actividadId = actividadId, uri = uri.toString(), mimeType = tipo, tamanoBytes = size, nombre = metadata.first, estado = EstadoEvidencia.LOCAL.name))
     }
 
-    suspend fun eliminar(actividadId: Long) = dao.eliminarPorActividad(actividadId)
+    open suspend fun eliminar(actividadId: Long) = dao.eliminarPorActividad(actividadId)
 
-    suspend fun sincronizar(actividadId: Long): Result<Unit> = runCatching {
+    open suspend fun sincronizar(actividadId: Long): Result<Unit> = runCatching {
         val evidencia = observarUnaVez(actividadId) ?: error("No hay evidencia para sincronizar")
         dao.actualizarEstado(actividadId, EstadoEvidencia.SUBIENDO.name)
-        remote.enviar(actividadId, Uri.parse(evidencia.uri), evidencia.mimeType).getOrThrow()
+        remote.enviar(actividadId, evidencia.uri, evidencia.mimeType).getOrThrow()
         dao.actualizarEstado(actividadId, EstadoEvidencia.SINCRONIZADA.name)
     }.onFailure {
         dao.actualizarEstado(actividadId, EstadoEvidencia.FALLIDA.name)

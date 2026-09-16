@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
 import com.miguelloaiza.miformacionctma.data.preferencias.IPreferenciasRepository
+import android.net.Uri
+import com.miguelloaiza.miformacionctma.data.EvidenciaRepository
+import com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity
 import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.ui.estado.ListadoUiState
 import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
@@ -16,7 +19,8 @@ import kotlinx.coroutines.CancellationException
 
 class ActividadesViewModel(
     private val repository: ActividadRepository,
-    private val preferencias: IPreferenciasRepository
+    private val preferencias: IPreferenciasRepository,
+    private val evidenciaRepository: EvidenciaRepository
 ) : ViewModel() {
 
     private val _busquedaQuery = MutableStateFlow("")
@@ -71,6 +75,9 @@ class ActividadesViewModel(
             initialValue = ListadoUiState.Cargando
         )
 
+    fun observarEvidencia(actividadId: Long): Flow<EvidenciaEntity?> =
+        evidenciaRepository.observar(actividadId)
+
     fun actualizarBusqueda(query: String) {
         _busquedaQuery.value = query
     }
@@ -107,6 +114,39 @@ class ActividadesViewModel(
             } catch (e: Exception) {
                 _operacionState.value = OperacionUiState.Fallida(e.message ?: "Error al eliminar")
             }
+        }
+    }
+
+    fun guardarEvidencia(actividadId: Long, uriString: String) {
+        operacionJob?.cancel()
+        operacionJob = viewModelScope.launch {
+            _operacionState.value = OperacionUiState.EnCurso
+            evidenciaRepository.guardar(actividadId, uriString)
+                .onSuccess { _operacionState.value = OperacionUiState.Exitosa }
+                .onFailure { _operacionState.value = OperacionUiState.Fallida(it.message ?: "Error al guardar evidencia") }
+        }
+    }
+
+    fun eliminarEvidencia(actividadId: Long) {
+        operacionJob?.cancel()
+        operacionJob = viewModelScope.launch {
+            _operacionState.value = OperacionUiState.EnCurso
+            try {
+                evidenciaRepository.eliminar(actividadId)
+                _operacionState.value = OperacionUiState.Exitosa
+            } catch (e: Exception) {
+                _operacionState.value = OperacionUiState.Fallida(e.message ?: "Error al eliminar evidencia")
+            }
+        }
+    }
+
+    fun sincronizarEvidencia(actividadId: Long) {
+        operacionJob?.cancel()
+        operacionJob = viewModelScope.launch {
+            _operacionState.value = OperacionUiState.EnCurso
+            evidenciaRepository.sincronizar(actividadId)
+                .onSuccess { _operacionState.value = OperacionUiState.Exitosa }
+                .onFailure { _operacionState.value = OperacionUiState.Fallida("La sincronización falló, pero la evidencia local se conserva") }
         }
     }
 

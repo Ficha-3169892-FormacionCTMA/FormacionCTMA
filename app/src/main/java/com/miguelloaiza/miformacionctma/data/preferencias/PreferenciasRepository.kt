@@ -12,6 +12,7 @@ private val Context.dataStore by preferencesDataStore(name = "preferencias_app")
 open class PreferenciasRepository(private val context: Context) : IPreferenciasRepository {
 
     private val FILTRO_KEY = stringPreferencesKey("filtro_prioridad")
+    private val TOKEN_KEY = stringPreferencesKey("auth_token")
 
     override fun obtenerFiltro(): Flow<String> {
         return context.dataStore.data.map { preferencias ->
@@ -22,6 +23,24 @@ open class PreferenciasRepository(private val context: Context) : IPreferenciasR
     override suspend fun guardarFiltro(filtro: String) {
         context.dataStore.edit { preferencias ->
             preferencias[FILTRO_KEY] = filtro
+        }
+    }
+
+    override fun obtenerToken(): Flow<String?> {
+        return context.dataStore.data.map { preferencias ->
+            preferencias[TOKEN_KEY]
+        }
+    }
+
+    override suspend fun guardarToken(token: String) {
+        context.dataStore.edit { preferencias ->
+            preferencias[TOKEN_KEY] = token
+        }
+    }
+
+    override suspend fun borrarToken() {
+        context.dataStore.edit { preferencias ->
+            preferencias.remove(TOKEN_KEY)
         }
     }
 }
