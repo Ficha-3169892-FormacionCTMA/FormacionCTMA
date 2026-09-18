@@ -81,3 +81,111 @@ El umbral usado para la demostración es 700dp. En pantallas compactas se conser
 
 ## Base de Semana 2 conservada
 `ActividadFormativa`, `EstadoActividad`, `Prioridad`, `ResultadoRegistro`, `ReglasActividad`, `ValidadorActividad`, pruebas unitarias y el resumen de negocio continúan presentes y se reutilizan desde la interfaz de Semana 3.
+
+---
+
+# Semana 7 — Corrutinas, Flow, StateFlow y ciclo de vida
+
+Rama: `feature/semana-07-coroutines-flow`
+
+## Arquitectura
+
+```
+Room (Flow<Entity>) ──► ActividadRepository (Flow<Dominio>, suspend)
+DataStore (Flow<String>) ──► PreferenciasRepository
+                                      │
+                              ActividadesViewModel
+                              ├── combine() + flatMapLatest()
+                              ├── debounce(300ms) para búsqueda
+                              ├── stateIn(WhileSubscribed 5s)
+                              ├── uiState: StateFlow<ListadoUiState>
+                              └── operacionState: StateFlow<OperacionUiState>
+                                      │
+                              ActividadesScreen (Compose)
+                              └── collectAsStateWithLifecycle()
+```
+
+## Estados implementados
+
+| Estado listado | Estado operación |
+|---|---|
+| `Cargando` | `Inactiva` |
+| `Contenido(actividades)` | `EnCurso` |
+| `Vacio` | `Exitosa` |
+| `Error(mensaje)` | `Fallida(error)` |
+
+## Decisiones de dispatcher
+
+| Capa | Dispatcher | Justificación |
+|---|---|---|
+| Room DAO | IO (interno de Room) | Room maneja su propio dispatcher |
+| DataStore | IO (interno) | DataStore es main-safe |
+| Repository | Sin cambio (main-safe) | Delega al DAO/DataStore |
+| ViewModel | `viewModelScope` (Main) | Transforma flujos; no bloquea |
+| Guardado/eliminación | `viewModelScope.launch` | Room es main-safe con `room-ktx` |
+
+**Regla aplicada:** La UI no crea `CoroutineScope`, no usa `GlobalScope` ni decide el dispatcher de datos.
+
+## Casos de aceptación (CA-01 a CA-08)
+
+| Caso | Descripción | Verificado |
+|---|---|---|
+| CA-01 | Sin actividades → Cargando → Vacío | ✅ Test |
+| CA-02 | Insertar → lista actualiza sin refresco | ✅ Test |
+| CA-03 | Filtro cambia → combine recalcula | ✅ Test |
+| CA-04 | Búsquedas rápidas → solo gana la última | ✅ Test |
+| CA-05 | Fallo del repository → Error con Reintentar | ✅ Test |
+| CA-06 | Salir durante operación → Job se cancela con el scope | ✅ Manual |
+| CA-07 | Girar pantalla → StateFlow conserva estado | ✅ Test |
+| CA-08 | Suite sin Thread.sleep | ✅ runTest + advanceUntilIdle |
+
+## Pruebas
+
+```bash
+./gradlew test
+```
+
+- `ActividadesViewModelTest` — 7 pruebas unitarias con `runTest`
+- Usan `FakeActividadRepository` y `FakePreferenciasRepository`
+- Sin delay real, sin base de datos, sin Android Context
+
+## Uso de IA
+
+Se utilizó Antigravity (IA) para:
+- Revisar la arquitectura existente de Semana 6 y diagnosticar qué faltaba
+- Generar los repositorios falsos (`FakeActividadRepository`, `FakePreferenciasRepository`)
+- Escribir los tests con `runTest` y `advanceUntilIdle`
+- Actualizar el README
+
+Todo el código generado fue revisado y validado contra la compilación real del proyecto (`./gradlew compileDebugKotlin` exitoso). Las decisiones de arquitectura (dispatchers, `stateIn`, `CancellationException`) corresponden a las semanas anteriores y al conocimiento propio del equipo.
+
+# Semana 9 — Capacidades del dispositivo y seguridad
+
+Cada actividad puede adjuntar una única evidencia. La app usa el selector de fotos del sistema y `TakePicture` con un `content://` de `FileProvider`; no pide acceso general a la galería. Room solo conserva URI, tipo MIME, tamaño, nombre y estado, nunca un Bitmap ni Base64.
+
+## Pruebas manuales
+
+1. Crear una actividad, elegir una imagen y comprobar la vista previa.
+2. Cancelar selector o cámara y comprobar que el estado anterior permanece.
+3. Tomar una foto y comprobar que no se comparte ningún `file://`.
+4. Probar archivo no-imagen o mayor de 10 MB; debe rechazarse.
+5. Reiniciar la app y comprobar que la evidencia local persiste.
+6. Pulsar Sincronizar sin configurar servicio; debe quedar `FALLIDA`, conservar la evidencia y permitir Reintentar.
+7. Activar recordatorios en Android 13+; el permiso se solicita solo al pulsar el botón.
+8. Eliminar la evidencia y comprobar que desaparece de Room.
+9. Ejecutar `prodRelease` y comprobar HTTPS/configuración sin secretos.
+
+## Matriz de riesgos y controles
+
+| Riesgo | Control |
+|---|---|
+| Acceso masivo a galería | `PickVisualMedia` sin permiso de almacenamiento |
+| Exposición de `file://` | `FileProvider` limitado a `cache/evidencias` |
+| Archivo malicioso | Validación MIME `image/*` y lectura verificable |
+| Archivo excesivo | Límite de 10 MB antes de persistir |
+| Pérdida de evidencia por red | Estados Local/Subiendo/Sincronizada/Fallida y reintento |
+| URI o token en logs | No se registra información de evidencia ni credenciales |
+| HTTP en producción | `usesCleartextTraffic=false` y configuración de red |
+| Secretos embebidos | URLs por variantes; ningún token en BuildConfig |
+| Notificaciones invasivas | Permiso contextual, solo tras acción de la persona |
+| Evidencia ajena o sensible | Vista previa y eliminación antes de sincronizar |
