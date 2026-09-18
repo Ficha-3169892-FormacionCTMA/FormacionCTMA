@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,12 +35,6 @@ import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
 import kotlinx.coroutines.launch
 import java.io.File
 
-/**
- * Pantalla principal de actividades.
- * Recolecta uiState (listado) y operacionState (guardar/eliminar) de forma
- * consciente del ciclo de vida, y no crea ningun CoroutineScope propio:
- * toda la logica asincrona vive en el ViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActividadesScreen(
@@ -61,7 +57,6 @@ fun ActividadesScreen(
         recordatoriosActivos = concedido
     }
 
-    // CA-06/CA-07: reacciona a operacionState sin bloquear la UI.
     LaunchedEffect(operacionState) {
         when (val estado = operacionState) {
             is OperacionUiState.Exitosa -> {
@@ -218,32 +213,71 @@ private fun ActividadItem(
     habilitado: Boolean,
     onEliminar: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(actividad.titulo, fontWeight = FontWeight.Bold)
-                if (!actividad.descripcion.isNullOrBlank()) {
-                    Text(actividad.descripcion)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = actividad.titulo,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Prioridad: ${actividad.prioridad.name} · Días: ${actividad.diasRestantes}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Progreso: ${actividad.progreso}%  ·  Prioridad: ${actividad.prioridad.name}")
-                Text("Dias restantes: ${actividad.diasRestantes}")
-                EvidenciaControls(actividad.id, viewModel)
+                IconButton(onClick = onEliminar, enabled = habilitado) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar actividad",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
-            TextButton(onClick = onEliminar, enabled = habilitado) {
-                Text("Eliminar")
+
+            if (!actividad.descripcion.isNullOrBlank()) {
+                Text(
+                    text = actividad.descripcion,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
+
+            LinearProgressIndicator(
+                progress = { actividad.progreso / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+            Text(
+                text = "Progreso: ${actividad.progreso}%",
+                style = MaterialTheme.typography.labelSmall
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+            EvidenciaControls(actividad.id, viewModel)
         }
     }
 }
 
-/** Selección puntual: no solicita permiso de galería ni conserva bytes en Room. */
 @Composable
 private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel) {
     val context = LocalContext.current
@@ -271,18 +305,42 @@ private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel
     Column(modifier = Modifier.padding(top = 8.dp)) {
         if (evidencia != null) {
             AndroidView(
-                factory = { ImageView(it).apply { adjustViewBounds = true; scaleType = ImageView.ScaleType.CENTER_CROP } },
-                update = { it.setImageURI(Uri.parse(evidencia!!.uri)) },
-                modifier = Modifier.fillMaxWidth().height(140.dp)
+                factory = { 
+                    ImageView(it).apply { 
+                        adjustViewBounds = true
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                    } 
+                },
+                update = { view ->
+                    view.post {
+                        try {
+                            view.setImageURI(Uri.parse(evidencia!!.uri))
+                        } catch (e: Exception) {
+                            // Error silencioso
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .padding(vertical = 4.dp)
             )
-            Text("Evidencia: ${evidencia!!.nombre} (${evidencia!!.estado.lowercase()})")
+            Text(
+                "Evidencia: ${evidencia!!.nombre} (${evidencia!!.estado.lowercase()})",
+                style = MaterialTheme.typography.labelSmall
+            )
         } else {
-            Text("Sin evidencia fotográfica")
+            Text("Sin evidencia fotográfica", style = MaterialTheme.typography.labelSmall)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
             OutlinedButton(onClick = {
                 selector.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }) { Text(if (evidencia == null) "Elegir imagen" else "Reemplazar") }
+            
             OutlinedButton(onClick = {
                 val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
                 val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
@@ -290,14 +348,22 @@ private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel
                 uriCaptura = uri
                 camara.launch(uri)
             }) { Text("Tomar foto") }
-            if (evidencia != null) {
-                TextButton(onClick = { viewModel.eliminarEvidencia(actividadId) }) { Text("Eliminar") }
+        }
+
+        if (evidencia != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { viewModel.eliminarEvidencia(actividadId) }) { 
+                    Text("Borrar foto", color = MaterialTheme.colorScheme.error) 
+                }
                 TextButton(onClick = { viewModel.sincronizarEvidencia(actividadId) }) {
                     Text(if (evidencia!!.estado == "FALLIDA") "Reintentar" else "Sincronizar")
                 }
             }
         }
-        mensajeLocal?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        
+        mensajeLocal?.let { 
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary) 
+        }
     }
 }
 
