@@ -1,8 +1,9 @@
 package com.miguelloaiza.miformacionctma.data
 
-import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.core.content.FileProvider
 import com.miguelloaiza.miformacionctma.data.local.EstadoEvidencia
 import com.miguelloaiza.miformacionctma.data.local.EvidenciaDao
 import com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity
@@ -10,15 +11,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.io.File
 
 open class EvidenciaRepository(
-    private val resolver: ContentResolver,
+    private val context: Context,
     private val dao: EvidenciaDao,
     private val remote: EvidenciaRemoteDataSource = EvidenciaRemoteNoConfigurada
 ) {
+    private val resolver = context.contentResolver
+
     companion object { const val MAX_BYTES = 10L * 1024 * 1024 }
 
     open fun observar(actividadId: Long): Flow<EvidenciaEntity?> = dao.observarPorActividad(actividadId)
+
+    /**
+     * Crea una URI segura para la camara usando FileProvider.
+     * La UI no debe conocer las rutas de archivos reales.
+     */
+    open fun obtenerUriTemporal(actividadId: Long): Uri {
+        val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
+        val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            archivo
+        )
+    }
 
     open suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {

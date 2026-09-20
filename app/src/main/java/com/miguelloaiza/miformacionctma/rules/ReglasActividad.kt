@@ -62,10 +62,10 @@ object ReglasActividad {
     ): List<ActividadFormativa> {
         val consulta = texto.trim()
 
-        if (consulta.isEmpty()) return emptyList()
+        if (consulta.isEmpty()) return actividades
 
         return actividades.filter {
-            it.titulo.trim().contains(
+            it.titulo.contains(
                 other = consulta,
                 ignoreCase = true
             )
@@ -119,9 +119,13 @@ object ReglasActividad {
     ): List<ActividadFormativa> =
         actividades.sortedWith(
             compareBy<ActividadFormativa> {
-                estadoActividad(it) != EstadoActividad.VENCIDA
+                when (estadoActividad(it)) {
+                    EstadoActividad.VENCIDA -> 0
+                    EstadoActividad.COMPLETADA -> 2
+                    else -> 1
+                }
             }.thenByDescending {
-                it.prioridad == Prioridad.ALTA
+                it.prioridad
             }.thenBy {
                 it.diasRestantes
             }
@@ -146,18 +150,46 @@ object ReglasActividad {
         )
     }
 
-    // HU-13: Editar la prioridad de una actividad.
+    // HU-15: Editar la prioridad de una actividad.
     fun cambiarPrioridad(
         actividad: ActividadFormativa,
         nuevaPrioridad: Prioridad
     ): ActividadFormativa =
         actividad.copy(prioridad = nuevaPrioridad)
 
-    // HU-14: Calcular el total de actividades por estado.
+    // HU-16: Calcular el total de actividades por estado.
     fun contarPorEstado(
         actividades: List<ActividadFormativa>
     ): Map<EstadoActividad, Int> =
         actividades
             .groupingBy { estadoActividad(it) }
             .eachCount()
+
+    // HU-19: Filtrar actividades por prioridad.
+    fun filtrarPorPrioridad(
+        actividades: List<ActividadFormativa>,
+        prioridad: Prioridad?
+    ): List<ActividadFormativa> =
+        if (prioridad == null) actividades
+        else actividades.filter { it.prioridad == prioridad }
+
+    // HU-20: Mostrar mensaje cuando no hay actividades.
+    fun obtenerMensajeVacio(
+        totalRegistradas: Int,
+        totalFiltradas: Int
+    ): String = when {
+        totalRegistradas == 0 -> "Aún no tienes actividades"
+        totalFiltradas == 0 -> "No se encontraron resultados"
+        else -> ""
+    }
+
+    // HU-21: Duplicar una actividad.
+    fun duplicarActividad(
+        actividad: ActividadFormativa,
+        nuevoId: Long
+    ): ActividadFormativa =
+        actividad.copy(
+            id = nuevoId,
+            progreso = 0
+        )
 }

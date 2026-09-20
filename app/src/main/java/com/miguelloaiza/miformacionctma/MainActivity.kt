@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY 
-                    else HttpLoggingInterceptor.Level.BASIC
+                    else HttpLoggingInterceptor.Level.NONE
         }
 
         val client = OkHttpClient.Builder()
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         val authRepository = AuthRepository(api, preferencias)
         val repository = ActividadRepository(database.actividadDao(), RemoteActividadDataSource(api))
         val evidenciaRemote = RetrofitEvidenciaDataSource(api, contentResolver)
-        val evidenciaRepository = EvidenciaRepository(contentResolver, database.evidenciaDao(), evidenciaRemote)
+        val evidenciaRepository = EvidenciaRepository(this, database.evidenciaDao(), evidenciaRemote)
 
         setContent {
             val estaLogueado by authRepository.estaLogueado().collectAsStateWithLifecycle(initialValue = false)

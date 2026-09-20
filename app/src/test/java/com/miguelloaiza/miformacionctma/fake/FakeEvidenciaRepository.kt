@@ -1,23 +1,32 @@
 package com.miguelloaiza.miformacionctma.fake
 
-import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import com.miguelloaiza.miformacionctma.data.EvidenciaRepository
 import com.miguelloaiza.miformacionctma.data.local.EstadoEvidencia
 import com.miguelloaiza.miformacionctma.data.local.EvidenciaDao
 import com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity
+import java.io.File
 
 class FakeEvidenciaRepository(
     private val dao: EvidenciaDao,
     private val remote: FakeEvidenciaRemoteDataSource = FakeEvidenciaRemoteDataSource()
 ) : EvidenciaRepository(
-    resolver = DummyContentResolver(),
+    context = DummyContext(),
     dao = dao,
     remote = remote
 ) {
     var deberiaFallarValidacion = false
 
-    class DummyContentResolver : ContentResolver(null)
+    class DummyContext : android.content.ContextWrapper(null) {
+        override fun getContentResolver(): android.content.ContentResolver {
+            return object : android.content.ContentResolver(null) {}
+        }
+        override fun getCacheDir(): File {
+            return File("dummy_cache")
+        }
+        override fun getPackageName(): String = "com.miguelloaiza.miformacionctma"
+    }
 
     override suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> {
         return if (deberiaFallarValidacion) {
