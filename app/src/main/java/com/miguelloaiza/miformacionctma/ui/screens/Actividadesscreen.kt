@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.miguelloaiza.miformacionctma.data.ActividadRepository
@@ -33,7 +32,6 @@ import com.miguelloaiza.miformacionctma.rules.viewmodel.ActividadesViewModelFact
 import com.miguelloaiza.miformacionctma.ui.estado.ListadoUiState
 import com.miguelloaiza.miformacionctma.ui.estado.OperacionUiState
 import kotlinx.coroutines.launch
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -280,7 +278,6 @@ private fun ActividadItem(
 
 @Composable
 private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel) {
-    val context = LocalContext.current
     val evidencia by viewModel.observarEvidencia(actividadId).collectAsStateWithLifecycle(initialValue = null)
     var uriCaptura by remember { mutableStateOf<Uri?>(null) }
     var mensajeLocal by remember { mutableStateOf<String?>(null) }
@@ -342,9 +339,7 @@ private fun EvidenciaControls(actividadId: Long, viewModel: ActividadesViewModel
             }) { Text(if (evidencia == null) "Elegir imagen" else "Reemplazar") }
             
             OutlinedButton(onClick = {
-                val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
-                val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", archivo)
+                val uri = viewModel.obtenerUriTemporal(actividadId)
                 uriCaptura = uri
                 camara.launch(uri)
             }) { Text("Tomar foto") }
