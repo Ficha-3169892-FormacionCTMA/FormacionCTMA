@@ -21,12 +21,12 @@ import com.miguelloaiza.miformacionctma.data.remote.RetrofitEvidenciaDataSource
 import com.miguelloaiza.miformacionctma.ui.screens.ActividadesScreen
 import com.miguelloaiza.miformacionctma.ui.screens.LoginScreen
 import com.miguelloaiza.miformacionctma.ui.theme.MiFormacionCTMATheme
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         val authRepository = AuthRepository(api, preferencias)
         val repository = ActividadRepository(database.actividadDao(), RemoteActividadDataSource(api))
         val evidenciaRemote = RetrofitEvidenciaDataSource(api, contentResolver)
-        val evidenciaRepository = EvidenciaRepository(contentResolver, database.evidenciaDao(), evidenciaRemote)
+        val evidenciaRepository = EvidenciaRepository(this, database.evidenciaDao(), evidenciaRemote)
 
         setContent {
             val estaLogueado by authRepository.estaLogueado().collectAsStateWithLifecycle(initialValue = false)

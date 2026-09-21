@@ -44,6 +44,10 @@ class FakeEvidenciaRepository(
         }
     }
 
+    override suspend fun eliminar(actividadId: Long) {
+        dao.eliminarPorActividad(actividadId)
+    }
+
     override suspend fun sincronizar(actividadId: Long): Result<Unit> {
         return try {
             dao.actualizarEstado(actividadId, EstadoEvidencia.SUBIENDO.name)

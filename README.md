@@ -163,8 +163,19 @@ Todo el código generado fue revisado y validado contra la compilación real del
 
 Cada actividad puede adjuntar una única evidencia. La app usa el selector de fotos del sistema y `TakePicture` con un `content://` de `FileProvider`; no pide acceso general a la galería. Room solo conserva URI, tipo MIME, tamaño, nombre y estado, nunca un Bitmap ni Base64.
 
-## Pruebas manuales
+## Documentación de la Semana 9
+- [Matriz de Riesgos y Controles](docs/Seguridad/MatrizRiesgosSemana9.md)
+- [Reporte de Casos de Aceptación](docs/Pruebas/ReporteCasosAceptacionS9.md)
 
+## Ambientes de Ejecución (Build Variants)
+El proyecto cuenta con tres variantes de ambiente configuradas en Gradle:
+- **dev**: Para desarrollo local. Usa `http://10.0.2.2:8080/`.
+- **stage**: Ambiente de pruebas/QA. Usa HTTPS.
+- **prod**: Producción. Forzado HTTPS y seguridad máxima.
+
+Para cambiar de ambiente, use la pestaña **Build Variants** en Android Studio.
+
+## Pruebas manuales
 1. Crear una actividad, elegir una imagen y comprobar la vista previa.
 2. Cancelar selector o cámara y comprobar que el estado anterior permanece.
 3. Tomar una foto y comprobar que no se comparte ningún `file://`.

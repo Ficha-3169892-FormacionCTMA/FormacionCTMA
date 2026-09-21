@@ -2,6 +2,7 @@ package com.miguelloaiza.miformacionctma.data
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
 import com.miguelloaiza.miformacionctma.data.local.EstadoEvidencia
@@ -40,7 +41,7 @@ open class EvidenciaRepository(
 
     open suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val uri = Uri.parse(uriString)
+            val uri = uriString.toUri()
             val tipo = resolver.getType(uri) ?: error("No se pudo identificar el tipo de archivo")
             require(tipo.startsWith("image/")) { "Solo se permiten imágenes" }
             val metadata = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->

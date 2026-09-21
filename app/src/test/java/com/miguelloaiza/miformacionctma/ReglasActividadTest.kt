@@ -9,90 +9,84 @@ import org.junit.Assert.*
 
 class ReglasActividadTest {
 
-    // HU-15 – Editar la prioridad de una actividad
+    // HU-01 – pantalla Debe Mostrar Titulo Y Actividades
 
     @Test
-    fun `HU-15 Escenario 1 - Cambiar prioridad correctamente`() {
-        // Dado que existe una actividad con prioridad BAJA
+    fun `CP-01 - Verificar que la lista de actividades se procese correctamente`() {
+        // Dado que existen actividades registradas
+        val actividades = listOf(
+            ActividadFormativa(1, "Actividad 1", "Desc", 50, 5, Prioridad.ALTA)
+        )
+        // Cuando se busca por titulo (logica de filtrado)
+        val resultado = ReglasActividad.buscarPorTitulo(actividades, "Actividad 1")
+        // Entonces la lista no debe estar vacia
+        assertTrue(resultado.isNotEmpty())
+        assertEquals("Actividad 1", resultado[0].titulo)
+    }
+
+    @Test
+    fun `CP-02 - Verificar que cada actividad contenga los campos obligatorios`() {
+        // Dado una actividad con todos sus campos
         val actividad = ActividadFormativa(
             id = 1L,
-            titulo = "Actividad de prueba",
-            descripcion = null,
-            progreso = 40,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        )
-
-        // Cuando cambio su prioridad a ALTA
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.ALTA
-        )
-
-        // Entonces la actividad debe reflejar la nueva prioridad
-        assertEquals(Prioridad.ALTA, resultado.prioridad)
-        assertEquals(actividad.id, resultado.id)
-        assertEquals(actividad.titulo, resultado.titulo)
-    }
-
-    @Test
-    fun `HU-15 Escenario 2 - Asignar la misma prioridad que ya tiene`() {
-        // Dado que una actividad ya tiene prioridad MEDIA
-        val actividad = ActividadFormativa(
-            id = 2L,
-            titulo = "Actividad media",
-            descripcion = "Sin cambios esperados",
-            progreso = 60,
-            diasRestantes = 3,
+            titulo = "Prototipo",
+            descripcion = "Evidencia de prototipo",
+            progreso = 0,
+            diasRestantes = 10,
             prioridad = Prioridad.MEDIA
         )
-
-        // Cuando intento cambiarla nuevamente a MEDIA
-        val resultado = ReglasActividad.cambiarPrioridad(
-            actividad = actividad,
-            nuevaPrioridad = Prioridad.MEDIA
-        )
-
-        // Entonces no debe generar error y la actividad debe mantener su prioridad sin duplicarse
-        assertEquals(Prioridad.MEDIA, resultado.prioridad)
-        assertEquals(actividad, resultado) // Al usar .copy() con el mismo valor, el objeto resultante es estructuralmente igual
-    }
-
-    // HU-16 – Calcular el total de actividades por estado
-
-    @Test
-    fun `HU-16 Escenario 1 - Conteo correcto`() {
-        // Dado que existen actividades en distintos estados
-        val actividades = listOf(
-            ActividadFormativa(1, "Vencida", null, 50, -1, Prioridad.MEDIA), // VENCIDA (diasRestantes < 0)
-            ActividadFormativa(2, "En progreso", null, 50, 5, Prioridad.MEDIA), // EN_PROCESO (0 < progreso < 100)
-            ActividadFormativa(3, "Completada", null, 100, 5, Prioridad.MEDIA), // COMPLETADA (progreso == 100)
-            ActividadFormativa(4, "Otra en progreso", null, 20, 3, Prioridad.MEDIA) // EN_PROCESO
-        )
-
-        // Cuando solicito el resumen por estado
-        val conteo = ReglasActividad.contarPorEstado(actividades)
-
-        // Entonces debe devolverse el número correcto de actividades para cada estado
-        assertEquals(1, conteo[EstadoActividad.VENCIDA] ?: 0)
-        assertEquals(2, conteo[EstadoActividad.EN_PROCESO] ?: 0)
-        assertEquals(1, conteo[EstadoActividad.COMPLETADA] ?: 0)
-        assertEquals(0, conteo[EstadoActividad.PENDIENTE] ?: 0)
+        // Entonces los campos deben ser accesibles y correctos
+        assertEquals("Prototipo", actividad.titulo)
+        assertEquals("Evidencia de prototipo", actividad.descripcion)
+        assertEquals(0, actividad.progreso)
+        assertEquals(10, actividad.diasRestantes)
+        assertEquals(Prioridad.MEDIA, actividad.prioridad)
     }
 
     @Test
-    fun `HU-16 Escenario 2 - Lista vacia`() {
-        // Dado que no hay actividades registradas
+    fun `CP-03 - Verificar el comportamiento cuando no existen actividades`() {
+        // Dado una lista vacia
         val actividades = emptyList<ActividadFormativa>()
+        // Cuando se genera el resumen logico
+        val resumen = ReglasActividad.resumen(actividades)
+        // Entonces debe indicar que no hay datos
+        assertEquals("Sin datos", resumen)
+    }
 
-        // Cuando solicito el resumen por estado
-        val conteo = ReglasActividad.contarPorEstado(actividades)
+    // HU-02 – actividad Con Dias Negativos Debe Ser Vencida
 
-        // Entonces todos los conteos deben ser cero
-        assertTrue(conteo.isEmpty())
-        assertEquals(0, conteo[EstadoActividad.VENCIDA] ?: 0)
-        assertEquals(0, conteo[EstadoActividad.EN_PROCESO] ?: 0)
-        assertEquals(0, conteo[EstadoActividad.COMPLETADA] ?: 0)
-        assertEquals(0, conteo[EstadoActividad.PENDIENTE] ?: 0)
+    @Test
+    fun `CP-04 - Actividad con 0 por ciento de progreso debe ser Pendiente`() {
+        val actividad = ActividadFormativa(1, "T1", null, 0, 5, Prioridad.MEDIA)
+        val estado = ReglasActividad.estadoActividad(actividad)
+        assertEquals(EstadoActividad.PENDIENTE, estado)
+    }
+
+    @Test
+    fun `CP-05 - Actividad con progreso entre 1 y 99 por ciento debe ser En proceso`() {
+        val actividad = ActividadFormativa(1, "T1", null, 50, 5, Prioridad.MEDIA)
+        val estado = ReglasActividad.estadoActividad(actividad)
+        assertEquals(EstadoActividad.EN_PROCESO, estado)
+    }
+
+    @Test
+    fun `CP-06 - Actividad con 100 por ciento de progreso debe ser Completada`() {
+        val actividad = ActividadFormativa(1, "T1", null, 100, 5, Prioridad.MEDIA)
+        val estado = ReglasActividad.estadoActividad(actividad)
+        assertEquals(EstadoActividad.COMPLETADA, estado)
+    }
+
+    @Test
+    fun `CP-07 - Actividad con dias restantes negativos y progreso inferior al 100 por ciento debe ser Vencida`() {
+        val actividad = ActividadFormativa(1, "T1", null, 50, -1, Prioridad.MEDIA)
+        val estado = ReglasActividad.estadoActividad(actividad)
+        assertEquals(EstadoActividad.VENCIDA, estado)
+    }
+
+    @Test
+    fun `CP-08 - Actividad con 100 por ciento de progreso permanece Completada aunque tenga dias restantes negativos`() {
+        val actividad = ActividadFormativa(1, "T1", null, 100, -2, Prioridad.MEDIA)
+        val estado = ReglasActividad.estadoActividad(actividad)
+        assertEquals(EstadoActividad.COMPLETADA, estado)
     }
 }
