@@ -4,29 +4,27 @@ import com.miguelloaiza.miformacionctma.domain.ActividadFormativa
 import com.miguelloaiza.miformacionctma.domain.EstadoActividad
 import com.miguelloaiza.miformacionctma.domain.Prioridad
 import com.miguelloaiza.miformacionctma.rules.ReglasActividad
-import org.junit.Test
 import org.junit.Assert.*
+import org.junit.Test
 
 class ReglasActividadTest {
 
+    // ============================================================
     // HU-01 – pantalla Debe Mostrar Titulo Y Actividades
+    // ============================================================
 
     @Test
     fun `CP-01 - Verificar que la lista de actividades se procese correctamente`() {
-        // Dado que existen actividades registradas
         val actividades = listOf(
             ActividadFormativa(1, "Actividad 1", "Desc", 50, 5, Prioridad.ALTA)
         )
-        // Cuando se busca por titulo (logica de filtrado)
         val resultado = ReglasActividad.buscarPorTitulo(actividades, "Actividad 1")
-        // Entonces la lista no debe estar vacia
         assertTrue(resultado.isNotEmpty())
         assertEquals("Actividad 1", resultado[0].titulo)
     }
 
     @Test
     fun `CP-02 - Verificar que cada actividad contenga los campos obligatorios`() {
-        // Dado una actividad con todos sus campos
         val actividad = ActividadFormativa(
             id = 1L,
             titulo = "Prototipo",
@@ -35,7 +33,6 @@ class ReglasActividadTest {
             diasRestantes = 10,
             prioridad = Prioridad.MEDIA
         )
-        // Entonces los campos deben ser accesibles y correctos
         assertEquals("Prototipo", actividad.titulo)
         assertEquals("Evidencia de prototipo", actividad.descripcion)
         assertEquals(0, actividad.progreso)
@@ -45,15 +42,14 @@ class ReglasActividadTest {
 
     @Test
     fun `CP-03 - Verificar el comportamiento cuando no existen actividades`() {
-        // Dado una lista vacia
         val actividades = emptyList<ActividadFormativa>()
-        // Cuando se genera el resumen logico
         val resumen = ReglasActividad.resumen(actividades)
-        // Entonces debe indicar que no hay datos
         assertEquals("Sin datos", resumen)
     }
 
+    // ============================================================
     // HU-02 – actividad Con Dias Negativos Debe Ser Vencida
+    // ============================================================
 
     @Test
     fun `CP-04 - Actividad con 0 por ciento de progreso debe ser Pendiente`() {
@@ -88,5 +84,15 @@ class ReglasActividadTest {
         val actividad = ActividadFormativa(1, "T1", null, 100, -2, Prioridad.MEDIA)
         val estado = ReglasActividad.estadoActividad(actividad)
         assertEquals(EstadoActividad.COMPLETADA, estado)
+    }
+
+    // ============================================================
+    // Otras Reglas de Negocio
+    // ============================================================
+
+    @Test
+    fun progresoFueraDeRangoDebeGenerarError() {
+        val errores = ReglasActividad.validarActividad("Test", 120)
+        assertTrue(errores.contains("El progreso debe estar entre 0 y 100"))
     }
 }
