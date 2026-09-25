@@ -21,7 +21,7 @@ import com.miguelloaiza.miformacionctma.data.remote.RetrofitEvidenciaDataSource
 import com.miguelloaiza.miformacionctma.ui.screens.ActividadesScreen
 import com.miguelloaiza.miformacionctma.ui.screens.LoginScreen
 import com.miguelloaiza.miformacionctma.ui.theme.MiFormacionCTMATheme
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient

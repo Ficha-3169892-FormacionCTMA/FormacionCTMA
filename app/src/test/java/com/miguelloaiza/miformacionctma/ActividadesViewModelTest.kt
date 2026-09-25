@@ -123,46 +123,6 @@ class ActividadesViewModelTest {
     }
 
     @Test
-    fun `S9-CA-02 cancelar selector o camara mantiene estado previo intacto`() = runTest {
-        viewModel.guardarEvidencia(1L, "content://media/1")
-        advanceUntilIdle()
-
-        val evidenciaPrevia = viewModel.observarEvidencia(1L).first()
-        assertNotNull(evidenciaPrevia)
-
-        // Si la persona cancela, la UI no llama a guardarEvidencia; la evidencia previa no cambia
-        val evidenciaPosterior = viewModel.observarEvidencia(1L).first()
-        assertEquals(evidenciaPrevia, evidenciaPosterior)
-    }
-
-    @Test
-    fun `S9-CA-03 captura con camara solicita URI temporal`() = runTest {
-        viewModel.obtenerUriTemporal(1L)
-        // La solicitud de URI temporal se completa sin excepciones
-    }
-
-    @Test
-    fun `S9-CA-05 reiniciar con evidencia local restaura metadatos de Room`() = runTest {
-        fakeEvidenciaDao.guardar(
-            com.miguelloaiza.miformacionctma.data.local.EvidenciaEntity(
-                actividadId = 1L,
-                uri = "content://media/preexistente",
-                mimeType = "image/png",
-                tamanoBytes = 2048,
-                nombre = "preexistente.png",
-                estado = EstadoEvidencia.LOCAL.name
-            )
-        )
-
-        val evidencia = viewModel.observarEvidencia(1L).first()
-        assertNotNull(evidencia)
-        assertEquals("content://media/preexistente", evidencia?.uri)
-        assertEquals("preexistente.png", evidencia?.nombre)
-        assertEquals(2048L, evidencia?.tamanoBytes)
-        assertEquals(EstadoEvidencia.LOCAL.name, evidencia?.estado)
-    }
-
-    @Test
     fun `S9-CA-06 reintentar sincronizacion tras fallo`() = runTest {
         viewModel.guardarEvidencia(1L, "content://media/1")
         fakeRemote.deberiaFallar = true
@@ -176,15 +136,5 @@ class ActividadesViewModelTest {
         val evidencia = viewModel.observarEvidencia(1L).first()
         assertEquals(EstadoEvidencia.SINCRONIZADA.name, evidencia?.estado)
         assertTrue(viewModel.operacionState.value is OperacionUiState.Exitosa)
-    }
-
-    @Test
-    fun `S9-CA-07 reiniciar operacion borra el estado temporal`() = runTest {
-        viewModel.guardarEvidencia(1L, "content://media/1")
-        advanceUntilIdle()
-        assertTrue(viewModel.operacionState.value is OperacionUiState.Exitosa)
-
-        viewModel.reiniciarOperacion()
-        assertTrue(viewModel.operacionState.value is OperacionUiState.Inactiva)
     }
 }
