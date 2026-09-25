@@ -1,6 +1,2 @@
 /build
-/app/build
-/.gradle
-.gradle/
-build/
 app/build/

@@ -22,7 +22,7 @@ class ActividadTest {
     }
 
 
-    // HU-14: Marcar actividad como completada-xxx
+    // HU-14: Marcar actividad como completada
     @Test
     fun completarActividad_cambiaEstadoACompletada() {
 
