@@ -74,9 +74,6 @@ class ActividadesViewModelTest {
         Dispatchers.resetMain()
     }
 
-    // =========================================================
-    // TESTS SEMANA 7
-    // =========================================================
 
     @Test
     fun `CA-01 sin actividades el estado es Vacio`() = runTest {
@@ -109,10 +106,6 @@ class ActividadesViewModelTest {
                 .titulo
         )
     }
-
-    // =========================================================
-    // TESTS SEMANA 9
-    // =========================================================
 
     @Test
     fun `S9-CA-01 elegir imagen valida persiste URI y estado LOCAL`() = runTest {
@@ -263,17 +256,224 @@ class ActividadesViewModelTest {
                     is OperacionUiState.Exitosa
         )
     }
-    @Test
-    fun `S10-CA-01 consultar evidencia inexistente devuelve null`() = runTest {
-        val evidencia = viewModel
-            .observarEvidencia(999L)
-            .first()
 
-        assertNull(evidencia)
+
+    @Test
+    fun `S11-CA-01 varias actividades aparecen en contenido`() = runTest {
+        val actividadB = ActividadFormativa(
+            id = 2L,
+            titulo = "Android Studio",
+            descripcion = "Prueba de Android",
+            progreso = 30,
+            diasRestantes = 10,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(
+            listOf(
+                actividadA,
+                actividadB
+            )
+        )
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val actividades =
+            (estado as ListadoUiState.Contenido).actividades
+
+        assertEquals(2, actividades.size)
     }
 
     @Test
-    fun `S10-CA-02 guardar evidencia nueva genera estado LOCAL`() = runTest {
+    fun `S11-CA-02 actividad conserva su porcentaje de progreso`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 5L,
+            titulo = "Prueba Kotlin",
+            descripcion = "Actividad de prueba",
+            progreso = 75,
+            diasRestantes = 4,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(75, resultado.progreso)
+    }
+
+    @Test
+    fun `S11-CA-03 actividad conserva los dias restantes`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 6L,
+            titulo = "Actividad de prueba",
+            descripcion = null,
+            progreso = 20,
+            diasRestantes = 12,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(12, resultado.diasRestantes)
+    }
+
+    @Test
+    fun `S11-CA-04 actividad conserva su prioridad`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 7L,
+            titulo = "Actividad prioritaria",
+            descripcion = null,
+            progreso = 90,
+            diasRestantes = 2,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(
+            Prioridad.ALTA,
+            resultado.prioridad
+        )
+    }
+
+    @Test
+    fun `S11-CA-05 actividad conserva su descripcion`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 8L,
+            titulo = "Actividad con descripcion",
+            descripcion = "Descripcion de la actividad",
+            progreso = 40,
+            diasRestantes = 8,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(
+            "Descripcion de la actividad",
+            resultado.descripcion
+        )
+    }
+
+
+    @Test
+    fun `S12-CA-01 actividad conserva su identificador`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 25L,
+            titulo = "Actividad con ID",
+            descripcion = "Prueba del identificador",
+            progreso = 60,
+            diasRestantes = 7,
+            prioridad = Prioridad.ALTA
+        )
+
+        viewModel.guardarActividad(actividad)
+        advanceUntilIdle()
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(25L, resultado.id)
+    }
+
+    @Test
+    fun `S12-CA-02 actividad conserva su titulo`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 26L,
+            titulo = "Nueva actividad Kotlin",
+            descripcion = "Descripcion",
+            progreso = 35,
+            diasRestantes = 9,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertEquals(
+            "Nueva actividad Kotlin",
+            resultado.titulo
+        )
+    }
+
+    @Test
+    fun `S12-CA-03 actividad permite descripcion nula`() = runTest {
+        val actividad = ActividadFormativa(
+            id = 27L,
+            titulo = "Actividad sin descripcion",
+            descripcion = null,
+            progreso = 10,
+            diasRestantes = 15,
+            prioridad = Prioridad.ALTA
+        )
+
+        fakeRepo.emitir(listOf(actividad))
+
+        val estado = viewModel.uiState.first {
+            it is ListadoUiState.Contenido
+        }
+
+        val resultado =
+            (estado as ListadoUiState.Contenido)
+                .actividades
+                .first()
+
+        assertNull(resultado.descripcion)
+    }
+
+    @Test
+    fun `S12-CA-04 sincronizacion exitosa cambia estado a SINCRONIZADA`() = runTest {
         viewModel.guardarEvidencia(
             2L,
             "content://media/2"
@@ -281,35 +481,14 @@ class ActividadesViewModelTest {
 
         advanceUntilIdle()
 
-        val evidencia = viewModel
-            .observarEvidencia(2L)
-            .first()
-
-        assertNotNull(evidencia)
-
-        assertEquals(
-            EstadoEvidencia.LOCAL.name,
-            evidencia?.estado
-        )
-    }
-
-    @Test
-    fun `S10-CA-03 evidencia guardada puede sincronizarse correctamente`() = runTest {
-        viewModel.guardarEvidencia(
-            3L,
-            "content://media/3"
-        )
-
-        advanceUntilIdle()
-
         fakeRemote.deberiaFallar = false
 
-        viewModel.sincronizarEvidencia(3L)
+        viewModel.sincronizarEvidencia(2L)
 
         advanceUntilIdle()
 
         val evidencia = viewModel
-            .observarEvidencia(3L)
+            .observarEvidencia(2L)
             .first()
 
         assertNotNull(evidencia)
@@ -326,51 +505,28 @@ class ActividadesViewModelTest {
     }
 
     @Test
-    fun `S10-CA-04 eliminar evidencia inexistente no genera registro`() = runTest {
-        viewModel.eliminarEvidencia(500L)
+    fun `S12-CA-05 guardar evidencia termina con operacion exitosa`() = runTest {
+        viewModel.guardarEvidencia(
+            3L,
+            "content://media/3"
+        )
 
         advanceUntilIdle()
 
         val evidencia = viewModel
-            .observarEvidencia(500L)
+            .observarEvidencia(3L)
             .first()
 
-        assertNull(evidencia)
-    }
-
-    @Test
-    fun `S10-CA-05 dos evidencias de actividades diferentes se mantienen independientes`() = runTest {
-        viewModel.guardarEvidencia(
-            10L,
-            "content://media/10"
-        )
-
-        viewModel.guardarEvidencia(
-            20L,
-            "content://media/20"
-        )
-
-        advanceUntilIdle()
-
-        val evidencia10 = viewModel
-            .observarEvidencia(10L)
-            .first()
-
-        val evidencia20 = viewModel
-            .observarEvidencia(20L)
-            .first()
-
-        assertNotNull(evidencia10)
-        assertNotNull(evidencia20)
+        assertNotNull(evidencia)
 
         assertEquals(
-            EstadoEvidencia.LOCAL.name,
-            evidencia10?.estado
+            "content://media/3",
+            evidencia?.uri
         )
 
-        assertEquals(
-            EstadoEvidencia.LOCAL.name,
-            evidencia20?.estado
+        assertTrue(
+            viewModel.operacionState.value
+                    is OperacionUiState.Exitosa
         )
     }
 }
