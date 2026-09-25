@@ -29,14 +29,16 @@ open class EvidenciaRepository(
      * Crea una URI segura para la camara usando FileProvider.
      * La UI no debe conocer las rutas de archivos reales.
      */
-    open fun obtenerUriTemporal(actividadId: Long): Uri {
-        val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
-        val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
-        return FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            archivo
-        )
+    open fun obtenerUriTemporal(actividadId: Long): Uri? {
+        return runCatching {
+            val carpeta = File(context.cacheDir, "evidencias").apply { mkdirs() }
+            val archivo = File(carpeta, "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg")
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                archivo
+            )
+        }.getOrNull()
     }
 
     open suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> = withContext(Dispatchers.IO) {

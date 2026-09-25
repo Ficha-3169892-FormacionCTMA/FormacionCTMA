@@ -28,6 +28,10 @@ class FakeEvidenciaRepository(
         override fun getPackageName(): String = "com.miguelloaiza.miformacionctma"
     }
 
+    override fun obtenerUriTemporal(actividadId: Long): Uri? {
+        return Uri.parse("content://com.miguelloaiza.miformacionctma.fileprovider/evidencias/evidencia_${actividadId}.jpg")
+    }
+
     override suspend fun guardar(actividadId: Long, uriString: String): Result<Unit> {
         return if (deberiaFallarValidacion) {
             Result.failure(IllegalArgumentException("La imagen supera 10 MB"))

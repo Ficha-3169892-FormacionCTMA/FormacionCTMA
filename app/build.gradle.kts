@@ -23,27 +23,6 @@ android {
         }
     }
 
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
-    flavorDimensions += "environment"
-    productFlavors {
-        create("dev") {
-            dimension = "environment"
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
-        }
-        create("stage") {
-            dimension = "environment"
-            buildConfigField("String", "API_BASE_URL", "\"https://stage.miformacion.com/\"")
-        }
-        create("prod") {
-            dimension = "environment"
-            buildConfigField("String", "API_BASE_URL", "\"https://api.miformacion.com/\"")
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -53,8 +32,25 @@ android {
                 "proguard-rules.pro"
             )
         }
-        debug {
-            isMinifyEnabled = false
+    }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
+        }
+        create("stage") {
+            dimension = "environment"
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+            buildConfigField("String", "API_BASE_URL", "\"https://stage.example.invalid/\"")
+        }
+        create("prod") {
+            dimension = "environment"
+            buildConfigField("String", "API_BASE_URL", "\"https://api.example.invalid/\"")
         }
     }
 
@@ -66,44 +62,54 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 }
 
 dependencies {
-    // Core y UI
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.activity:activity-ktx:1.10.1")
     implementation(platform("androidx.compose:compose-bom:2025.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    
-    // Lifecycle y ViewModel
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
-    // Room
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // Red (Retrofit + OkHttp + Serialization)
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-
-    // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.2")
-
-    // testing
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.02.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // 👇 AGREGAR TODO ESTO
+
+    // Room (base de datos)
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // DataStore (preferencias)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Corrutinas
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // ViewModel + Compose (para viewModel() y collectAsStateWithLifecycle)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Para pruebas con corrutinas (lo pedirá la guía más adelante)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
