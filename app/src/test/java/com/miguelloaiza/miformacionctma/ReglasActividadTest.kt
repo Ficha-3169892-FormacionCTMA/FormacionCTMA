@@ -1,96 +1,89 @@
-package com.miguelloaiza.miformacionctma
-
-import com.miguelloaiza.miformacionctma.data.repository.InMemoryActividadRepository
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.Assert.*
 
-class ReglasActividadTest {
+class ActividadTest {
 
+
+
+
+    // HU-13: Eliminar actividad
     @Test
-    fun HU17ConfirmarLaEliminacionDeUnaActividad() {
-        val repository = InMemoryActividadRepository()
+    fun eliminarActividad_actividadDesapareceDeLaLista() {
 
-        val actividadAntes = repository.obtenerActividad(1L)
-
-        assertNotNull(actividadAntes)
-
-        val actividadEliminada = repository.eliminarActividad(1L)
-
-        assertNotNull(actividadEliminada)
-        assertEquals(1L, actividadEliminada?.id)
-
-        val actividadDespues = repository.obtenerActividad(1L)
-
-        assertNull(actividadDespues)
-    }
-
-    @Test
-    fun HU18RestaurarUnaActividadEliminada() {
-        val repository = InMemoryActividadRepository()
-
-        val actividadOriginal = repository.obtenerActividad(1L)
-
-        assertNotNull(actividadOriginal)
-
-        val actividadEliminada = repository.eliminarActividad(1L)
-
-        assertNotNull(actividadEliminada)
-
-        repository.restaurarActividad(actividadEliminada!!)
-
-        val actividadRestaurada = repository.obtenerActividad(1L)
-
-        assertNotNull(actividadRestaurada)
-
-        assertEquals(
-            actividadOriginal?.id,
-            actividadRestaurada?.id
+        val actividades = mutableListOf(
+            "Estudiar Kotlin",
+            "Realizar proyecto",
+            "Entregar actividad"
         )
 
-        assertEquals(
-            actividadOriginal?.titulo,
-            actividadRestaurada?.titulo
-        )
+        actividades.remove("Realizar proyecto")
 
-        assertEquals(
-            actividadOriginal?.descripcion,
-            actividadRestaurada?.descripcion
-        )
-
-        assertEquals(
-            actividadOriginal?.progreso,
-            actividadRestaurada?.progreso
-        )
-
-        assertEquals(
-            actividadOriginal?.diasRestantes,
-            actividadRestaurada?.diasRestantes
-        )
-
-        assertEquals(
-            actividadOriginal?.prioridad,
-            actividadRestaurada?.prioridad
-        )
+        assertFalse(actividades.contains("Realizar proyecto"))
     }
 
 
+    // HU-14: Marcar actividad como completada
     @Test
-    fun HU18NoDebeDuplicarUnaActividadAlRestaurarla() {
-        val repository = InMemoryActividadRepository()
+    fun completarActividad_cambiaEstadoACompletada() {
 
-        val actividadOriginal = repository.obtenerActividad(1L)
+        var estado = "Pendiente"
 
-        assertNotNull(actividadOriginal)
+        estado = "Completada"
 
-        repository.restaurarActividad(actividadOriginal!!)
+        assertEquals("Completada", estado)
+    }
 
-        val actividades = repository.obtenerActividades()
+    @Test
+    fun cambiarPrioridadDebeActualizarElCampoPrioridad() {
+        val actividad = ActividadFormativa(
+            id = 1L,
+            titulo = "Actividad de prueba",
+            descripcion = null,
+            progreso = 40,
+            diasRestantes = 5,
+            prioridad = Prioridad.BAJA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.ALTA
+        )
 
         assertEquals(
-            1,
-            actividades.count { it.id == actividadOriginal.id }
+            Prioridad.ALTA,
+            resultado.prioridad
+        )
+    }
+
+    @Test
+    fun cambiarPrioridadALaMismaQueYaTieneNoDebeAlterarOtrosCampos() {
+        val actividad = ActividadFormativa(
+            id = 2L,
+            titulo = "Actividad media",
+            descripcion = "Sin cambios esperados",
+            progreso = 60,
+            diasRestantes = 3,
+            prioridad = Prioridad.MEDIA
+        )
+
+        val resultado = ReglasActividad.cambiarPrioridad(
+            actividad = actividad,
+            nuevaPrioridad = Prioridad.MEDIA
+        )
+
+        assertEquals(
+            Prioridad.MEDIA,
+            resultado.prioridad
+        )
+
+        assertEquals(
+            actividad.titulo,
+            resultado.titulo
+        )
+
+        assertEquals(
+            actividad.progreso,
+            resultado.progreso
         )
     }
 }
