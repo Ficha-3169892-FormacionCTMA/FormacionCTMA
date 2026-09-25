@@ -78,7 +78,7 @@ class ActividadesViewModel(
     fun observarEvidencia(actividadId: Long): Flow<EvidenciaEntity?> =
         evidenciaRepository.observar(actividadId)
 
-    fun obtenerUriTemporal(actividadId: Long): Uri =
+    fun obtenerUriTemporal(actividadId: Long): Uri? =
         evidenciaRepository.obtenerUriTemporal(actividadId)
 
     fun actualizarBusqueda(query: String) {

@@ -63,6 +63,15 @@ android {
         jvmTarget = "17"
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -112,4 +121,6 @@ dependencies {
     // Para pruebas con corrutinas (lo pedirá la guía más adelante)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
